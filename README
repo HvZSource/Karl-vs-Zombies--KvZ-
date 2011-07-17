@@ -1,0 +1,58 @@
+Karl Vs Zombies version 2.6
+By Karl Tata
+Other Contributions by Mike Seese, Alex Marcus, Greg Quilop, Joe Sklover, and Justin Quick
+If you have any problems or find any bugs, please email info@HvZSource.com
+
+Contents:
+   Changelog
+   Issues
+   Requirements
+   Install
+
+------
+
+Changelog:
+   Allow for multiple games on the same codebase
+   Supports the Mike Seese's Android app 
+   aplayers.php has been restylized
+   Implemented simple template engine
+
+------
+
+Issues:
+    Does not support a website with no subdomain
+    Forgot password does not work
+    we need to add a forgot username feature
+    Twitter features are not working properly, especially when running mutlitple games on one codebase
+
+------
+
+Requirements:
+   Linux
+   Apache Webserver
+   MySQL DB
+   PHP 5
+   SMTP
+
+------
+
+Install:
+   When installing this system, the name of the subdomain is the same as the database prefix.
+
+Please follow these steps:
+   Upload files to server
+   Set Permissions (chmod -R 777 pics admin/twitter_conf.txt)
+   Set Admin Registration Password (in the file settings/config.dat)
+   Create Database and Users
+   Set Database Cradentials (in the file settings/config.dat)
+
+To create a game you need to 
+   Create a subdomain and point to the instal directory.
+   Create a directory in the pics/ folder with the same name as the subdomain
+   Make sure that the permissions are 777 (writable to everyone!) 
+   Change the "subdomain-name" on in DB.sql with your actual subdmain's name
+   Import DB.sql to your databse 
+
+All configurations (time zone/ twitter/ edit rules / front page/ edit players) take place in the admin section (ex. http://yoursite.com/admin).  
+
+    

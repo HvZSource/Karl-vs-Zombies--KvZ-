@@ -1,0 +1,9 @@
+BODY {
+	BACKGROUND-COLOR:black;
+	COLOR:white; }
+A {
+	COLOR:white;
+	TEXT-DECORATION:underline; }
+H1, H2, H3, H4, H5, H6 {
+	COLOR:white;
+	TEXT-DECORATION; }
