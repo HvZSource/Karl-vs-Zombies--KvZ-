@@ -57,6 +57,7 @@ $ret = mysql_query("SELECT fname, lname, id FROM $table_u WHERE oz_opt=1;");
 <table>
 
 <?php
+$ozs = array();
 for($i = 0; $i < mysql_num_rows($ret); $i++) {
 	$row = mysql_fetch_assoc($ret); ?> 
 		<tr>
@@ -64,8 +65,14 @@ for($i = 0; $i < mysql_num_rows($ret); $i++) {
 		<td><?php print $row['fname'] . " " . $row['lname']; ?></td>
 		</tr>
 <?php
+	$ozs[$row['id']] =  $row['id'];
 }
+$rand_oz = array_rand($ozs);
 ?>
+		<tr>
+		<td><input type='radio' name='oz_pick' value='<?php print $rand_oz; ?>' checked></td>
+		<td>Pick a Random OZ!</td>
+		</tr>
 </table>
 <input type='submit' name='submit' value='Select Original Zombie'>
 </center>
