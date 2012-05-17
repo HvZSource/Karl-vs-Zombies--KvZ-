@@ -32,12 +32,23 @@ $ret = mysql_query("INSERT INTO $table_u (id, fname, lname, state, kills) VALUES
 $ret = mysql_query("UPDATE $table_v SET value = 1 WHERE keyword='oz-selected';");
 
 
-$ret = mysql_query("SELECT fname, lname FROM $table_u WHERE id='$oz';");
+$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE id='$oz';");
 $row = mysql_fetch_row($ret);
 print "<table height=100% width=100%><tr><td align=center valign=center>";
 print "$row[0] $row[1] has been selected as the original zombie.<br>"; 
 print "<a href='flow.php'>Back to game flow</a>";
 print "</td></tr></table>";
+
+//email player
+$header = "From: no-reply@HvZSource.com \r\n";
+$body  = "Hi there {$row[0]}.\n\n";
+$body .= "Well, got some news for you about that scratch on your knee from your freak zip-lining accident. ";
+$body .= "You have a flesh-eating virus that doesn't just eat flesh, it makes you want to eat flesh. ";
+$body .= "Oh, and it's contagious. Well, been nice knowing ya. Welcome to HvZ...\n\n";
+$body .= 'YOU ARE THE ORIGINAL ZOMBIE! "OZ", for short ;)' . "\n\n";
+$body .= "Keep this quiet until the game starts! Remember, a zombie's best weapons are stealth and trickery.\n\n";
+$body .= "--HvZSource";
+mail($row[2], "HvZSource: Shhhh.....", $body, $header);
 	
 } else {
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='reg-closed';");
