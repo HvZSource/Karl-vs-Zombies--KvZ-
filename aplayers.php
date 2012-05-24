@@ -82,7 +82,7 @@ if($_POST['submit'] == 'Refresh') {
 
 <body>
 <h3>Player List</h3>
-<form name="playerListForm" method="POST" action="<?php echo $PHP_SELF; ?>">
+<form name="playerListForm" method="POST" action="aplayers.php">
 <center>
 
 <?php
