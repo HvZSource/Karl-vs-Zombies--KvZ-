@@ -9,21 +9,18 @@ $sql = my_quick_con($config) or die("MySQL problem");
 $table_v = $config['var_table'];
 $table_u = $config['user_table'];
 $table_t = $config['time_table'];
-// Set default time zone
-$ret = mysql_query("SELECT zone FROM $table_t");
-while($row = mysql_fetch_array($ret))
-	   date_default_timezone_set($row['zone']);
-$ret = mysql_query("UPDATE $table_u SET state = -4 WHERE now() > feed + INTERVAL 2 day;");
-$ret = mysql_query("UPDATE $table_u SET starved = feed + INTERVAL 2 day WHERE state = -4;");
-$ret = mysql_query("UPDATE $table_u SET state = 0 WHERE state = -4;");
+// Get game settings
+$ret = mysql_query("SELECT zone, feed_limit, starve_time FROM $table_t");
+$row = mysql_fetch_assoc($ret);
+date_default_timezone_set($row['zone']);
+$feed_limit = $row['feed_limit'];
+$starve_time = $row['starve_time'];
+// Kill starved zombies
+mysql_query("UPDATE $table_u SET state = 0, starved = feed + INTERVAL $starve_time hour
+			WHERE state < 0 AND now() > feed + INTERVAL $starve_time hour AND starved = '0000-00-00 00:00:00' AND active;");
+// Get OZ Revealed setting
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';");
-// this is an array fetching bug 
-// $reveal_oz = mysql_fetch_assoc($ret);
-// $reveal_oz is clearly expecting a scalar return value and not an array
-// therefore, you have to look at the query and figure out which single field 
-// it was trying to extract (value in this case, based on the prior SELECT).
-$reveal_oz = mysql_fetch_assoc($ret);
-$reveal_oz = $reveal_oz['value'];
+$reveal_oz = mysql_result($ret, 0);
 // UCWATIDIDTHAR?
 ?>
 
@@ -33,6 +30,7 @@ $reveal_oz = $reveal_oz['value'];
 <title>Humans vs. Zombies :: Source</title>
 
 <?php
+
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='game-started';");
 $game_started = mysql_fetch_assoc($ret); 
 $game_started = $game_started['value'];
@@ -53,12 +51,11 @@ if($game_over == 1) {
 
 if($_POST['submit'] == 'Report Tag') {
 $victim = strtoupper(ereg_replace("[^A-Za-z0-9]","",$_POST['victim_id']));
-$feed[0] = $_SESSION['id'];
-$feed[1] = ereg_replace("[^A-Za-z0-9]","",$_POST['feed1']);
-$feed[2] = ereg_replace("[^A-Za-z0-9]","",$_POST['feed2']);
+$feed = $_POST['feed'];
+array_unshift($feed, $_SESSION['id']);//ereg_replace("[^A-Za-z0-9]","",)
 $hour = ereg_replace("[^0-9]","",$_POST['hour']);
 $minute = ereg_replace("[^0-9]","",$_POST['minute']);
-$today = ereg_replace("[^0-1]","",$_POST['day']);
+$days_ago = ereg_replace("[^0-1]","",$_POST['days_ago']);
 $err = 0; 
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';");
 $revealed = mysql_fetch_assoc($ret);
@@ -66,9 +63,10 @@ $revealed = $revealed['value'];
 
 print "<table height=100% width=100%><tr><td align=center valign=center><font color='white'>";
 
-$ret = mysql_query("SELECT state FROM $table_u WHERE id='$victim';");
-$vstate = mysql_fetch_assoc($ret); 
-$vstate = $vstate['state'];
+// Get victim info
+$ret = mysql_query("SELECT state, fname, lname FROM $table_u WHERE id='$victim' AND active;");
+$vrow = mysql_fetch_assoc($ret); 
+$vstate = $vrow['state'];
 if(mysql_num_rows($ret) == 0) {
 	print "<body bgcolor='#0000'><font color='#ffff'>The ID number you entered could not be found.<br>"; 
 	$err = 1; 
@@ -78,7 +76,7 @@ if(mysql_num_rows($ret) == 0) {
 } else {
 	$current_hour = date('H');
 	$current_minute = date('i');
-	if($today == 1 && (($hour > $current_hour) || ($hour == $current_hour && $minute > $current_minute))) {
+	if($days_ago == 0 && (($hour > $current_hour) || ($hour == $current_hour && $minute > $current_minute))) {
 		print "<body bgcolor='#0000'><font color='#ffff'>You can't eat people from the future.<br>";
 		$err = 1;
 	}
@@ -86,13 +84,13 @@ if(mysql_num_rows($ret) == 0) {
 for($i = 0; $i < sizeof($feed) && $err == 0; $i++) { if(strlen($feed[$i]) > 0) {
 	if(!$revealed) {
 		$f = $feed[$i];
-                $ret = mysql_query("SELECT state FROM $table_u WHERE id='$f';");
+                $ret = mysql_query("SELECT state FROM $table_u WHERE id='$f' AND active;");
                 $temp = mysql_fetch_assoc($ret);
 		$temp = $temp['state'];
                 if($temp == '-2') $feed[$i] = 'OriginalZombie';
         }
 
-	$ret = mysql_query("SELECT state, fname, lname, feed FROM $table_u WHERE id='$feed[$i]';"); 
+	$ret = mysql_query("SELECT state, fname, lname, feed FROM $table_u WHERE id='$feed[$i]' AND active;"); 
 	if(mysql_num_rows($ret) == 0) { $err = 1; break; }
 
 	$row = mysql_fetch_row($ret); 
@@ -117,72 +115,80 @@ if($err == 0) {
 
 
 $of = $feed[0];
-$kill_time = date('Y-m-d') . " $hour:$minute:00";
-$ret = mysql_query("UPDATE $table_u SET kills = kills + 1 WHERE id='$of';");
-$ret = mysql_query("UPDATE $table_u SET state = -1 WHERE id='$victim';");
-$ret = mysql_query("UPDATE $table_u SET feed = TIMESTAMP '$kill_time' + INTERVAL 1 hour WHERE id='$victim';");
-if($today == 0) $ret = mysql_query("UPDATE $table_u SET feed = feed - INTERVAL 1 day WHERE id='$victim';");
-$ret = mysql_query("UPDATE $table_u SET killed_by = '$of' WHERE id='$victim';");
-$ret = mysql_query("UPDATE $table_u SET killed = TIMESTAMP '$kill_time' WHERE id='$victim';");
-if($today == 0) $ret = mysql_query("UPDATE $table_u SET killed = killed - INTERVAL 1 day WHERE id='$victim';");
+$kill_time = date('Y-m-d', strtotime('-' . $days_ago . ' days')) . " $hour:$minute:00";
+// increment kills for tagging zombie
+mysql_query("UPDATE $table_u SET kills = kills + 1 WHERE id='$of';");
+// update values for tagged user
+mysql_query("UPDATE $table_u SET state = -1, feed = TIMESTAMP '$kill_time' + INTERVAL 1 hour, killed_by = '$of',
+	killed = TIMESTAMP '$kill_time' WHERE id='$victim';");
 
 for($i = 0; $i < sizeof($feed); $i++) { if(strlen($feed[$i]) > 0) {
 	$f = $feed[$i];
 	$kill_time = date('Y-m-d') . " $hour:$minute:00";
-	        if(is_resource($ret)) {
-     mysql_free_result($ret);
-}
-$ret = mysql_query("UPDATE $table_u SET feed = TIMESTAMP '$kill_time' WHERE id = '$f' and timediff(feed + INTERVAL 2 day,now());") >= 0;
-
-        if($ret && $today == 0) $ret = mysql_query("UPDATE $table_u SET feed = feed - INTERVAL 1 day WHERE id='$f';");
+	if(is_resource($ret)) { mysql_free_result($ret); }
+	mysql_query("UPDATE $table_u SET feed = TIMESTAMP '$kill_time' WHERE id = '$f' and timediff(feed + INTERVAL $starve_time hour,now()) >= 0 AND active;");
 }}
 
 	//TWITTER API
-	// Get victim name
-	$ret = mysql_query("SELECT fname, lname FROM $table_u WHERE id='$victim';");
-	$vic_row = mysql_fetch_array($ret);
 	// Get zombie name and state
 	$ret = mysql_query("SELECT fname, lname, state FROM $table_u WHERE id='$of';");
 	$zom_row = mysql_fetch_array($ret);
 	// The message you want to send
 	// OZ is not revealed, OZ makes kill
 	if(!$revealed && $zom_row[2] < -1){
-		$message = "The original zombie has tagged " . $vic_row[0] . " " . $vic_row[1] . ".";
+		$message = "The original zombie has tagged " . $vrow['fname'] . " " . $vrow['lname'] . ".";
 	}
 	// Non-OZ or OZ after reveal makes a kill
 	else{
-		$message = $zom_row[0] . " " . $zom_row[1] . " has tagged " . $vic_row[0] . " " . $vic_row[1] . ".";	
+		$message = $zom_row[0] . " " . $zom_row[1] . " has tagged " . $vrow['fname'] . " " . $vrow['lname'] . ".";
 	}
 	include("twitter.php");	
 
-	print "<body bgcolor='#0000'><font color='#ffff'>Tag Reported.</font><br><a href=$PHP_SELF>Go Back</a>";
+	print '<body bgcolor="#0000"><font color="#ffff">Tag Reported.</font><br><a href="kill.php">Go Back</a>';
 
 
 } else {
-	print "<a href=$PHP_SELF><body bgcolor='#0000'><font color='#ffff'>Go Back</a>";
+	print '<a href="kill.php"><body bgcolor="#0000"><font color="#ffff">Go Back</a>';
 }
 print "</td></tr></table>";
-} else {
-
+} else { ?>
+<script type="text/javascript">
+<!-- 
+function chkcontrol(j) {
+	var total=0;
+	var feed_zs = document.getElementsByName('feed[]');
+	for(var i=0; i < feed_zs.length; i++){
+		if(feed_zs[i].checked){
+			total =total +1;
+		}
+		if(total > <?= $feed_limit; ?>){
+			alert("Please Select only <?= $feed_limit; ?>") 
+			feed_zs[j].checked = false ;
+			return false;
+		}
+	}
+} 
+-->
+</script>
+<?php
 include('template_top.php');
-
 ?>
 
 
 
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form name="kill_form" method=POST action="kill.php">
 <center><h1>Report Tags:</h1>
 <table border>
 <tr>
-<td>Victim</td>
+<td>Victim's ID</td>
 <td><input type='text' name='victim_id' size=20></td>
 </tr>
 
 <tr>
 <td colspan=2>
-<select name="day">
-	<option value='0'>Yesterday</option>
-	<option value='1' selected>Today</option>
+<select name="days_ago">
+	<option value='1'>Yesterday</option>
+	<option value='0' selected>Today</option>
 </select>
 <select name="hour">
 <?php
@@ -202,41 +208,29 @@ for($i = 0; $i < 60; $i++) {
 </tr>
 
 <tr>
-<td>Feed 1</td>
+<?php if($feed_limit > 0) { 
+	$show = $feed_limit > 20 ? $feed_limit : 20;
+?>
+<td>Feed Up To <?= $feed_limit; ?> Other Zombie<?= $feed_limit > 1? 's': ''; ?><br>
+(<?= $show; ?> hungriest shown)
+</td>
 <td>
-<select name='feed1'>
-	<option></option>
 <?php
 $pid = $_SESSION['id']; 
-if($reveal_oz) $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL 2 day, now()) FROM $table_u WHERE state < 0 AND id != '$pid' ORDER BY feed ASC;"); 
-else $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL 2 day, now()) FROM $table_u WHERE state < 0 AND state != -2 AND id != '$pid' ORDER BY feed ASC;");
+if($reveal_oz) $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL $starve_time hour, now()) FROM $table_u WHERE state < 0 AND id != '$pid' AND active ORDER BY feed ASC limit $show;"); 
+else $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL $starve_time hour, now()) FROM $table_u WHERE state < 0 AND state != -2 AND id != '$pid' AND active ORDER BY feed ASC limit $show;");
 for($i = 0; $i < mysql_num_rows($ret); $i++) {
 	$row = mysql_fetch_row($ret); 
 	$till_starve = $row[3];
-	print "<option value='$row[0]'>$row[1] $row[2] ($till_starve)</option>"; 
+	print "\n\t<input name='feed[]' id='feed_me' type='checkbox' value='$row[0]' onClick='javascript:chkcontrol($i)' />$row[1] $row[2] ($till_starve)<br>"; 
 }
-?>
-</select>
+?>&nbsp;
 </td>
-</tr>
-
-<tr>
-<td>Feed 2</td>
-<td>
-<select name='feed2'>
-        <option></option>
-<?php
-mysql_data_seek($ret, 0);
-for($i = 0; $i < mysql_num_rows($ret); $i++) {
-        $row = mysql_fetch_row($ret); 
-	$till_starve = $row[3];
-	print "<option value='$row[0]'>$row[1] $row[2] ($till_starve)</option>";
-}
-?>
-</select>
+<?php } else { ?>
+<td colspan="2">Feed sharing has been disabled for this game.
 </td>
+<?php } ?>
 </tr>
-
 <tr>
 <td colspan=2 align=center>
 <input type='submit' name='submit' value='Report Tag'>
