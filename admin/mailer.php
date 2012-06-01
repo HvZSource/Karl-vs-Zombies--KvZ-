@@ -23,7 +23,7 @@ $reveal_oz = $reveal_oz['value'];
 
 <body>
 <h3>player list</h3>
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form method=POST action="mailer.php">
 <?php
 $faction_array = array('a'=>'All', 'r'=>'Resistance', 'h'=>'Horde', 'd'=>'Deceased');
 print "<select name='faction'>";

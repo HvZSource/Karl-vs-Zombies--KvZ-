@@ -24,26 +24,41 @@ if($_POST['submit'] == 'Select Original Zombie') {
 
 $oz = $_POST['oz_pick']; 
 // users table 
-$ret = mysql_query("UPDATE $table_u SET state = -2 WHERE id='$oz';");
-$ret = mysql_query("INSERT INTO $table_u (id, fname, lname, state, kills) VALUES ('OriginalZombie','Original','Zombie', -3, 0);");
+mysql_query("UPDATE $table_u SET state = -2 WHERE id='$oz';");
+mysql_query("INSERT INTO $table_u (id, username, password, email, pic_path, fname, lname, state, kills, oz_opt) 
+			VALUES ('OriginalZombie','OriginalZombie','" . rand() . "','oz@humansvszombies.org','images/OZ.jpg','Original','Zombie', -3, 0, 0);");
 
 
 // variables table
-$ret = mysql_query("UPDATE $table_v SET value = 1 WHERE keyword='oz-selected';");
+mysql_query("UPDATE $table_v SET value = 1 WHERE keyword='oz-selected';");
 
 
 $ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE id='$oz';");
 $row = mysql_fetch_row($ret);
-print "<table height=100% width=100%><tr><td align=center valign=center>";
-print "$row[0] $row[1] has been selected as the original zombie.<br>"; 
-print "<a href='flow.php'>Back to game flow</a>";
-print "</td></tr></table>";
+?>
+<table height=100% width=100%><tr><td align=center valign=center>
+<div name="oz" id="oz" style="display:none"><?= $row[0] . ' ' . $row[1]; ?> has been selected as the original zombie.</div><br>
+The original zombie has been chosen. This has been kept hidden for privacy reasons.<br>
+If you need to know, click <a href="javascript:void(0);" onClick="javascript:document.getElementById('oz').style.display='block';">show</a><br>
+<br>
+<a href='flow.php'>Back to game flow</a>
+</td></tr></table>
+
+<?php
+$zombie_reasons = array(
+	'Well, got some news for you about that scratch on your knee from your freak zip-lining accident. You have a flesh-eating virus that doesn\'t just eat flesh, it makes you want to eat flesh.',
+	'Remember that last vaccine you got? Well, it was experimental and seems to have one little side-effect: you become a mindless automaton, incapable of remembering the past, unable to recognise loved ones and doomed to an existence of cannibalistic hunger.',
+	'The self-replicating medical nanobots that were implanted to repair your recent brain trauma have shut down the part of the brain that resists (the cortex) making you their proverbial b%+ch. To preserve themselves, they\'re making you hunt down new host-brains in which to setup camp.',
+	'You know that weird neighbor you have? The one who always stares, but doesn\'t make eye-contact? Well, he\'s been dabbling in voodoo and has chosen you as his test subject. He slipped you some potion and you now have a raging case of Zombie-itis.',
+	'Sorry to have to inform you, but that beef you recently ate had a mutated strain of mad cow disease. It\'s a fast acting virus that leaves you with a swollen brain, a raging fever, makes you hateful and violent and leaves you with a really bad case of the munchies.',
+	'A top-secret government experiment "misplaced" some toxic spores and they got into your coffee. The spore has turned your brain to mush, leaving behind only the part that controls basic motor function and primitive instincts. Turns out your primitive instincts mostly involve gorey violence and consumption of raw flesh. Who knew?',
+);
+$rand_reason = array_rand($zombie_reasons);
 
 //email player
 $header = "From: no-reply@HvZSource.com \r\n";
 $body  = "Hi there {$row[0]}.\n\n";
-$body .= "Well, got some news for you about that scratch on your knee from your freak zip-lining accident. ";
-$body .= "You have a flesh-eating virus that doesn't just eat flesh, it makes you want to eat flesh. ";
+$body .= $zombie_reasons[$rand_reason] . ' ';
 $body .= "Oh, and it's contagious. Well, been nice knowing ya. Welcome to HvZ...\n\n";
 $body .= 'YOU ARE THE ORIGINAL ZOMBIE! "OZ", for short ;)' . "\n\n";
 $body .= "Keep this quiet until the game starts! Remember, a zombie's best weapons are stealth and trickery.\n\n";
@@ -60,10 +75,11 @@ if($reg_closed == 0) {
 }
 
 if($err == 0) {
-$ret = mysql_query("SELECT fname, lname, id FROM $table_u WHERE oz_opt=1;");
+	$ret = mysql_query("SELECT fname, lname, id FROM $table_u WHERE oz_opt=1 AND active;");
+	if(mysql_num_rows($ret) > 0) {
 ?>
 
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form method=POST action="oz_pick.php">
 <center>
 <table>
 
@@ -90,11 +106,14 @@ $rand_oz = array_rand($ozs);
 </form>
 
 <?php
+	} else {
+		echo "<center>No one has registered to be the Original Zombie!</center>";
+	}
 }
 }
 ?>
 </body>
-
+</html>
 <?php
 mysql_free_result($ret);
 mysql_close($sql); 

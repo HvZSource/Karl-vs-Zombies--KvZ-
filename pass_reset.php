@@ -39,7 +39,7 @@ include('template_top.php');
 <td>
 <h1>Password Reset:</h1>
          <center>
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form method=POST action="pass_reset.php">
 <table>
 <tr>
 	<td>username:</td>

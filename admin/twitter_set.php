@@ -55,7 +55,7 @@ else{
 }
 ?>
 <br />
-<form name="twitter" method=POST action=<?php echo $PHP_SELF; ?>>
+<form name="twitter" method=POST action="twitter_set.php">
 Twitter username:
 <input type="text" name="username">
 <br />

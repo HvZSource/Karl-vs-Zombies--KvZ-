@@ -18,6 +18,7 @@ $pid = $_GET['id'];
 </head>
 <?php
 if($_POST['submit'] == 'Delete') {
+	$pid = $_POST['id'];
 	$ret = mysql_query("SELECT fname, lname, username FROM $table_u WHERE id='$pid';");
 	while($row = mysql_fetch_array($ret)) {	
 		echo("Sucessfully deleted player " . $row['fname'] . " " . $row['lname'] . ".");
@@ -33,7 +34,8 @@ while($row = mysql_fetch_array($ret))
 ?>
 <body>
 <br />
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form method=POST action="delete_player.php">
+<input type="hidden" name="id" value="<?= $pid; ?>" />
 <input type='submit' name='submit' value='Delete'></td></tr>
 </form>
 

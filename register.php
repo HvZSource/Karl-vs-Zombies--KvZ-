@@ -88,7 +88,7 @@ print "<a href='register.php'>Try again</a>";
 		print "<a href='register.php'>Try again</a>";
 	} else {
 		$valid_id = 0; 
-		$c_list = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		$c_list = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
 		srand(); 
 
 		while($valid_id == 0) {
@@ -102,11 +102,11 @@ print "<a href='register.php'>Try again</a>";
 				$valid_id = 1; 
 			}
 		}
-		$ret = mysql_query("INSERT INTO $table_u (id, fname, lname, username, password, email, oz_opt, state, kills) VALUES ('$id','$fname','$lname','$username','$password','$email_address','$oz_opt', 1, 0);");
+		mysql_query("INSERT INTO $table_u (id, fname, lname, username, password, email, oz_opt, state, kills) VALUES ('$id','$fname','$lname','$username','$password','$email_address','$oz_opt', 1, 0);");
 		print "Registered.<br>";
                 print "<a href='index.php'>Home</a><br><br> Your ID is: ";
                 print $id; 
-                print "<br>Please write it down and cary it with you during the game.  If a zombie tags you, please give them your ID. <br>You can also find your ID in the My Account section of the site.";
+                print "<br>Please write it down and carry it with you during the game.  If a zombie tags you, please give them your ID. <br>You can also find your ID in the My Account section of the site.";
 
 		//TWITTER
 		// The message you want to send
@@ -135,7 +135,7 @@ print "</td></tr></table>";
 
 <table height=100% width=100%><tr><td align=center valign=center>
 <h3>Registration</h3>
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form method=POST action="register.php">
 <table>
 <tr>
 <td>first name:</td>
