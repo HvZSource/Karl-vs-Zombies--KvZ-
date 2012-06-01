@@ -8,31 +8,31 @@ $table_u = $config['user_table'];
 $table_v = $config['var_table'];
 $table_t = $config['time_table'];
 $sql = my_quick_con($config) or die("MySQL problem"); 
-// Set default time zone
-$ret = mysql_query("SELECT zone FROM $table_t");
-while($row = mysql_fetch_array($ret))
-	   date_default_timezone_set($row['zone']);
-$ret = mysql_query("UPDATE $table_u SET state = -4 WHERE now() > feed + INTERVAL 2 day;"); 
-$ret = mysql_query("UPDATE $table_u SET starved = feed + INTERVAL 2 day WHERE state = -4;");
-$ret = mysql_query("UPDATE $table_u SET state = 0 WHERE state = -4;");
+// Get game settings
+$ret = mysql_query("SELECT zone, starve_time FROM $table_t");
+$row = mysql_fetch_assoc($ret);
+date_default_timezone_set($row['zone']);
+$starve_time = $row['starve_time'];
+
+// Kill starved zombies
+mysql_query("UPDATE $table_u SET state = 0, starved = feed + INTERVAL $starve_time hour
+			WHERE state < 0 AND now() > feed + INTERVAL $starve_time hour AND starved = '0000-00-00 00:00:00';");
+// Get OZ Revealed setting
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';");
-$reveal_oz = mysql_fetch_assoc($ret);
-$reveal_oz = $reveal_oz['value'];
+$reveal_oz = mysql_result($ret, 0);
 $state_translate = array('-3'=>'Zombie', '-2'=>'Original Zombie', '-1'=>'Zombie', '0'=>'Starved', '1'=>'Human', '2'=>'Human');
-$admin = 0;
-if(isset($_SESSION['pass_hash'])) $admin = 1;
 
 if($_POST['submit'] == 'Refresh') {
 	$post_faction_array = array('a'=>'1 = 1', 'r'=>'state > 0', 'h'=>'state < 0', 'd'=>'state = 0'); 
-	if(!$reveal_oz) { 
+	if(!$reveal_oz) {
 		$post_faction_array['r'] = 'state > 0 OR state = -2';
 		$post_faction_array['h'] = 'state = -1 OR state = -3';
 	}
-	$post_sort_by_array = array('ln'=>'lname', 'fn'=>'fname', 'ks'=>'tags', 'kd'=>'taggeded', 'fd'=>'shared', 'sd'=>'starved');
+	$post_sort_by_array = array('ln'=>'lname', 'fn'=>'fname', 'ks'=>'kills', 'kd'=>'killed_by', 'fd'=>'feed', 'sd'=>'starved');
 	$post_order_array = array('a'=>'ASC', 'd'=>'DESC');
 
 	$faction = $post_faction_array[$_POST['faction']];
-	if(!isset($faction)) $faction = '1 = 2';
+	if(!isset($faction)) $faction = '1';
 	$sort_by = $post_sort_by_array[$_POST['sort_by']];
 	if(!isset($sort_by)) $sort_by = 'lname';
 	$order = $post_order_array[$_POST['order']];
@@ -44,7 +44,7 @@ if($_POST['submit'] == 'Refresh') {
 	$show_feed = $_POST['show_feed']; 
 	$show_starved = $_POST['show_starved']; 
 } else {
-        $faction = '1 = 1';
+        $faction = '1';
 	$sort_by = 'lname';
 	$order = 'ASC'; 
 	$show_pics = 1;
@@ -61,30 +61,30 @@ if($_POST['submit'] == 'Refresh') {
 
 <h3>Player List</h3>
 <?php
-$zom = mysql_query("SELECT * FROM $table_u WHERE `state`=-1");
-$dead = mysql_query("SELECT * FROM $table_u WHERE `state`=0");
-$hum = mysql_query("SELECT * FROM $table_u  WHERE `state`=1");
-$hnum = mysql_num_rows($hum);
+$zom = mysql_query("SELECT count(id) FROM $table_u WHERE (`state`=-1 or `state`=-2) and active");
+$dead = mysql_query("SELECT count(id) FROM $table_u WHERE `state`=0 and active");
+$hum = mysql_query("SELECT count(id) FROM $table_u  WHERE `state`=1 and active");
+$hnum = mysql_result($hum, 0);
 if ( $hnum > "1" ) {
         echo "$hnum Humans<br>";
 }
 if ( $hnum == "1" ) {
         echo "$hnum Human<br>";
 }
-$znum = mysql_num_rows($zom);
+$znum = mysql_result($zom, 0);
 if ( $znum > "1" ) {
         echo "$znum Zombies<br>";
 }
 if ( $znum == "1" ) {
         echo "$znum Zombie<br>";
 }
-$dnum = mysql_num_rows($dead);
+$dnum = mysql_result($dead, 0);
 if ( $dnum > "0" ) {
         echo "$dnum Deceased<br>";
 }
 ?>
 
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form method=POST action="players.php">
 <center>
 <?php
 
@@ -119,7 +119,7 @@ print "</select>";
 <input type='checkbox' name='show_feed' value='1' <?php if($show_feed) print "checked"; ?>> Last Fed
 <input type='checkbox' name='show_starved' value='1' <?php if($show_starved) print "checked"; ?>> Time Starved
 </center>
-<table width=100% border>
+<table width="100%" border="1">
 <tr>
 <?php
 if($show_pics) print "<td>Picture</td>";
@@ -131,23 +131,21 @@ if($show_kills) print "<td>Tags</td>";
 if($show_killed) print "<td>Time of Tag</td>";
 if($show_feed) print "<td>Last Feeding Time</td>";
 if($show_starved) print "<td>Time of Starvation</td>";
-if($admin) print "<td></td>";
 ?>
 </tr>
 
 <?php
-$ret = mysql_query("SELECT fname, lname, state, killed_by, killed, feed, kills, starved, pic_path, id FROM $table_u WHERE $faction ORDER BY $sort_by $order;"); 
+$ret = mysql_query("SELECT fname, lname, state, killed_by, killed, feed, kills, starved, pic_path, id FROM $table_u WHERE $faction AND active ORDER BY $sort_by $order;"); 
 for($i = 0; $i < mysql_num_rows($ret); $i++) {
 	
+	print "<tr>";
 	$row = mysql_fetch_array($ret);
 	if($show_pics) {
-		print "<td>";
-		if(strlen($row[8]) > 0) {
-			print "<center><img src='$row[8]' height=200></center>";
-		} else {
-			print "<center>no image<br>available</center>";
-		}
-		print "</td>";
+		$pic_path = strlen($row[8]) > 0 ? $row[8] : "images/zom_no_photo.jpg";
+		$img_size = getimagesize($pic_path);
+		//echo '<!-- '; var_dump($img_size); echo ' -->';
+		$img_size = $img_size[1] < 200 ? $img_size[1] : '200';
+		print "<td><center><img src='$pic_path' height='$img_size'></center></td>";
 	}
 	print "<td>$row[0] $row[1]</td><td>";
 	if($row[2] == -2 && !$reveal_oz) {
@@ -162,28 +160,28 @@ for($i = 0; $i < mysql_num_rows($ret); $i++) {
 		} else {
 			print "$row[6]";
 		}
-		print "</td>";
+		print "<br>&nbsp;</td>";
 	}
 	if($show_killed) {
 		print "<td>";
 		if($row[2] <= 0 && ($row[2] != -2 || $reveal_oz)) {
 			print $row[4];
 		}
-		print "</td>";
+		print "<br>&nbsp;</td>";
 	}
 	if($show_feed) {
 		print "<td>";
 		if($row[2] <= 0 && ($row[2] != -2 || $reveal_oz)) { 
                         print $row[5];
                 }
-		print "</td>";
+		print "<br>&nbsp;</td>";
 	}
 	if($show_starved) {
 		print "<td>";
 		if($row[2] == 0) { 
                         print $row[7];
                 }
-		print "</td>";
+		print "<br>&nbsp;</td>";
 	}
 	print "</tr>";
 
