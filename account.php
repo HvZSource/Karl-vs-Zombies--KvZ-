@@ -165,41 +165,41 @@ Lifetime kills: <?= $userrow['lifetime_kills'] + $userrow['kills']; ?>, Games co
 <br>
 <?php if(!$userrow['active'] && !$reg_closed) { ?>
 <form method=POST action="account.php">
-<table border=1>
-<tr><td colspan=2 align=center><b><h2>Registration is Open!</h2></b></td></tr>
+<table border="0">
+<tr><td colspan=2 align=center><h2>Registration is Open!</h2></td></tr>
 <tr>
 <td>Registration is open for the next HvZ game. If you'd like to<br>join (you know you want to) just click the "Join Game" button!</td>
 <td><input type='submit' name='submit' value='Join Game!' >
 </td></tr>
-</table>
+</table><br>
 </form>
 <? } ?>
 
 <form method="POST" enctype="multipart/form-data" action="account.php">
-<table border=1>
-<tr><td colspan=2 align=center><b><h2>Your Settings</h2></b></td></tr>
+<table border=1 valign="top">
+<tr><td colspan=2 align="center"><h2>Your Settings</h2></td></tr>
 <tr>
-<td>In OZ Pool:</td>
+<td valign="top">In OZ Pool:</td>
 <td><input type='checkbox' name='oz_opt' value='1' <?= $userrow['oz_opt'] ? 'checked' : ''; ?>/></td>
 </tr>
 <tr>
-<td>Email Address:</td>
+<td valign="top">Email Address:</td>
 <td><input type='text' name='email' size="20" value="<?= $userrow['email']; ?>" /></td>
 </tr>
 <tr>
-<td>Name:</td>
+<td valign="top">Name:</td>
 <td><input type='text' name='fname' size="20" value="<?= $userrow['fname']; ?>" /><small>First</small><br>
 	<input type='text' name='lname' size="20" value="<?= $userrow['lname']; ?>" /><small>Last</small></td>
 </tr>
 <tr>
-<td>Change Password:</td>
+<td valign="top">Change Password:</td>
 <td><input type='password' name='pass_original' size="20" maxlength="20" /><small>Current password</small><br>
 <input type='password' name='pass_new' size=20 maxlength=20 /><small>New Password</small><br>
 <input type='password' name='pass_confirm' size=20 maxlength=20><small>Confirm New Password</small></td>
 </tr>
 <tr>
 <td><img src='<?php echo $c_pic_path; ?>' height=200></td>
-<td>
+<td valign="top">
 <input type='hidden' name='MAX_FILE_SIZE' value='1000000'>
 Upload a new picture:<br><input type='file' size=30 name='new_pic'><br>
 <small>

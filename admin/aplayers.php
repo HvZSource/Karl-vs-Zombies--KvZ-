@@ -204,7 +204,7 @@ if($ret && ($rows = mysql_num_rows($ret)) > 0)
 		if($row['active']) {
 			print "<td align='center'><a href='deactivate_player.php?id=".$row['id']."'>deactivate</a></td>";
 		} else {
-			print "<td align='center'><a href='delete_player.php?id=".$row['id']."'>delete</a></td>";
+			print "<td align='center'><a href='activate_player.php?id=".$row['id']."'>activate</a> | <a href='delete_player.php?id=".$row['id']."'>delete</a></td>";
 		}
 		print "</tr>";
 	}

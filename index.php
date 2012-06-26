@@ -4,25 +4,43 @@ session_start();
 require_once('functions/load_config.php');
 require_once('functions/quick_con.php');
 $config = load_config('settings/config.dat');
- 
+$sql = my_quick_con($config) or die("MySQL problem");
+$table_u = $config['user_table'];
+$table_v = $config['var_table'];
+$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='game-started';"); 
+$game_started = mysql_result($ret, 0);
+
 // get the front content and save it into the session
 if(!isset($_SESSION['content']['front'])) {
-$sql = my_quick_con($config) or die("MySQL problem");
 $result = mysql_query("SELECT value FROM $config[content_table] WHERE keyword='front'");
 $row = mysql_fetch_assoc($result);
 $_SESSION['content']['front'] = $row['value'];
 }
- 
 $front = $_SESSION['content']['front'];
+
+// Get current game summary
+$game_summary = '';
+if($game_started) {
+	$query = "SELECT (SELECT (SELECT CONCAT(k.fname, ' ', k.lname) FROM $table_u k WHERE k.id = u.killed_by)) as tagger, CONCAT(u.fname, ' ', u.lname) as tagged, UNIX_TIMESTAMP(u.killed) killed FROM $table_u u WHERE active AND state IN (-1, 0) AND u.killed_by IS NOT NULL ORDER BY u.killed;";
+	$result = mysql_query($query) or die(mysql_error());
+	if(mysql_num_rows($result) > 0) {
+		while($row = mysql_fetch_assoc($result)) {
+			$game_summary .= '<b>' . $row['tagger'] . '</b> tagged <b>' . $row['tagged'] . '</b> at ' . date('g:i a', $row['killed']) . ' on ' . date('M jS', $row['killed']) . "<br>\n";
+		}
+	} else {
+		$game_summary = 'No activity in this game yet';
+	}
+ }
 ?>
  
 <?php include('template_top.php'); ?>
  
 <!--<h3>The Humans vs. Zombies database has crashed, and we lost several days of game data. Please work with your moderators as they rebuild your game.</h3>
 <p>-->
+
 <?php print $front; ?>
 
-</p>
+<p><h2>Game Summary</h2><?= $game_summary; ?></p>
 <br>
 <script src="http://connect.facebook.net/en_US/all.js#xfbml=1"></script><fb:like href="http://www.facebook.com/pages/Humans-Vs-Zombies/103123970670?ref=ts" width="300" font="verdana"></fb:like>
 <div style="padding-right:15px;">

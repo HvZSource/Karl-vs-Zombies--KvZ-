@@ -17,28 +17,28 @@ $pid = $_GET['id'];
 <link rel='stylesheet' type='text/css' href='style/main.css'>
 </head>
 <body>
-<h2>Deactivate Player</h2>
+<h2>Activate Player</h2>
 <?php
-if($_POST['submit'] == 'Deactivate') {
+if($_POST['submit'] == 'Activate') {
 	$pid = $_POST['id'];
 	$ret = mysql_query("SELECT fname, lname, username FROM $table_u WHERE id='$pid';");
 	$row = mysql_fetch_array($ret);
-	if(mysql_query("UPDATE $table_u set active = 0 WHERE id = '$pid';")) {	
-		echo "Sucessfully deactivated player " . $row['fname'] . " " . $row['lname'] . ".<br><br>You will be re-directed in 3 seconds...";
+	if(mysql_query("UPDATE $table_u set active = 1 WHERE id = '$pid';")) {
+		echo "Sucessfully activated player " . $row['fname'] . " " . $row['lname'] . ".<br><br>You will be re-directed in 3 seconds...";
 		header("refresh: 4; url=aplayers.php");
 		echo '<br><br>';
 	} else {
-		echo("FAILED trying to deactivate player " . $row['fname'] . " " . $row['lname'] . ".");
+		echo("FAILED trying to activate player " . $row['fname'] . " " . $row['lname'] . ".");
 	}
 } else {
-	$ret = mysql_query("SELECT fname, lname, username FROM $table_u WHERE id='$pid';");
+    $ret = mysql_query("SELECT fname, lname, username FROM $table_u WHERE id='$pid';");
 	$row = mysql_fetch_array($ret);
-	echo("Are you sure you want to deactivate player " . $row['fname'] . " " . $row['lname'] . "?<br />");
+	echo("Are you sure you want to activate player " . $row['fname'] . " " . $row['lname'] . "?<br />");
 ?>
 <br />
-<form method=POST action="deactivate_player.php">
+<form method=POST action="activate_player.php">
 <input type="hidden" name="id" value="<?= $pid; ?>" />
-<input type='submit' name='submit' value='Deactivate'></td></tr>
+<input type='submit' name='submit' value='Activate'></td></tr>
 </form>
 
 
