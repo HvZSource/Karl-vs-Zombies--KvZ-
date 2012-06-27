@@ -61,8 +61,8 @@ if($_POST['submit'] == 'Change Password') {
 <td>confirm new password:</td>
 <td><input type="password" name="pass_confirm" size="20" maxlength="20"></td>
 </tr>
-<tr><td colspan=2 align=center>
-<input type="submit" name="submit" value="Change Password'>
+<tr><td colspan="2" align="center">
+<input type="submit" name="submit" value="Change Password">
 </td></tr>
 </table>
 </form>
