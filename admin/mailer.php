@@ -5,19 +5,20 @@ require_once('security.php');
 require_once('../functions/load_config.php');
 require_once('../functions/quick_con.php'); 
 $config = load_config('../settings/config.dat');
+$table_t = $config['time_table'];
 $table_u = $config['user_table'];
 $table_v = $config['var_table'];
 $sql = my_quick_con($config) or die("MySQL problem"); 
 // Get game settings
-$ret = mysql_query("SELECT zone, starve_time FROM $table_t");
+$ret = mysql_query("SELECT zone, starve_time FROM $table_t") or die(mysql_error());
 $row = mysql_fetch_assoc($ret);
 date_default_timezone_set($row['zone']);
 $starve_time = $row['starve_time'];
 // Kill starved zombies
 mysql_query("UPDATE $table_u SET state = 0, starved = feed + INTERVAL $starve_time hour
-			WHERE state < 0 AND now() > feed + INTERVAL $starve_time hour AND starved = '0000-00-00 00:00:00' AND active;") or die(mysqlerror());
+			WHERE state < 0 AND now() > feed + INTERVAL $starve_time hour AND starved = '0000-00-00 00:00:00' AND active;") or die(mysql_error());
 // Get OZ Revealed setting
-$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';");
+$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';") or die(mysql_error());
 $reveal_oz = mysql_result($ret, 0);
 ?>
 
@@ -48,7 +49,7 @@ if($_POST['submit'] == 'Generate') {
                 $post_faction_array['r'] = 'state > 0 OR state = -2';
         }
 	$faction = $post_faction_array[$_POST['faction']];
-	$ret = mysql_query("SELECT email FROM $table_u WHERE $faction AND state != -3;");
+	$ret = mysql_query("SELECT email FROM $table_u WHERE $faction AND state != -3;") or die(mysql_error());
 	for($i = 0; $i < mysql_num_rows($ret); $i++) {
 		$row = mysql_fetch_assoc($ret); 
 		print $row['email'];
