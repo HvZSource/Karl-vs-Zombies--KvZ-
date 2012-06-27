@@ -201,11 +201,11 @@ Let's put this game in the ground and raise everyone from the dead so we can sta
 -Add lifetime kills to account page and players list?<br>
 -Support two profile pics, 1 human, 1 zombie<br>
 -Add incubation time to game settings<br>
--Control ID length through db rather than config file<br>
--Group (horde/resistance) email list<br>
--Game timeline (Joe tagged Sam at 3 PM) - SELECT (SELECT (SELECT k.fname FROM start_users k WHERE k.id = u.killed_by)) as tagger, u.fname as tagged, u.killed FROM `start_users` u WHERE active AND state = -1 ORDER BY u.killed;<br>
--Stats on home page (top tagger, timeline, player counts)<br>
--Add support for game hours
+-Control ID length through game settings rather than config file<br>
+-Stats on home page (top taggers, player counts)<br>
+-Add support for game hours (work hours, weekends, etc.) to prevent starvation at non-playing times<br>
+-Support multiple OZ's at beginning of game<br>
+-Make game creation process easier (created through admin system)<br>
 </td>
 </tr>
 <tr>
