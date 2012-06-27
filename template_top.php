@@ -19,6 +19,16 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 
+function clickclear(thisfield, defaulttext) {
+	if (thisfield.value == defaulttext) {
+	thisfield.value = "";
+	}
+}
+function clickrecall(thisfield, defaulttext) {
+	if (thisfield.value == "") {
+	thisfield.value = defaulttext;
+	}
+}
 </script>
 	
 </head>
@@ -50,7 +60,7 @@ if($_POST['submit'] == 'Login') {
 		mysql_free_result($ret);
 		$_SESSION['user'] = $logname;
 		$_SESSION['id'] = $id;
-		header('Location:'.$PHP_SELF);
+		header('Location: index.php');
 	} else {
 		echo "&nbsp;&nbsp;|&nbsp;&nbsp;<font color=red>Invalid username/password</font>";
 	}
@@ -60,12 +70,10 @@ if($_POST['submit'] == 'Login') {
 }
 
 if(!isset($_SESSION['user'])) {
-	echo'<form method=POST action=';
-	echo $PHP_SELF;
-	echo '>
+	echo'<form method=POST action="index.php">
 	<a href="register.php">Register</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-	<input name="user" type="text" value="Username" size="15" />
-	<input name="pass" type="password" value="Password" size="15" />
+	<input name="user" type="text" value="Username" size="15" onclick="clickclear(this, \'Username\')" onblur="clickrecall(this,\'Username\')"/>
+	<input name="pass" type="password" value="" size="15" />
 	<input type="submit" name="submit" value="Login">
 	&nbsp;&nbsp;|&nbsp;&nbsp;<a href="pass_reset.php">Forgot your Password?</a>
 	</form>';

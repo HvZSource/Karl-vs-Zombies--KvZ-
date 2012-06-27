@@ -74,7 +74,7 @@ print "</td></tr></table></body>";
 <body>
 <table height=100% width=100%><tr><td align=center valign=center>
 <h3>Admin Registration</h3>
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form method=POST action="register.php">
 <table>
 <tr>
 <td>Username:</td>

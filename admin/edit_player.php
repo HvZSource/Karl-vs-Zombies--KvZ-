@@ -5,6 +5,7 @@ require_once('security.php');
 require_once('../functions/load_config.php');
 require_once('../functions/quick_con.php');
 $config = load_config('../settings/config.dat');
+$game_name = $config['game_name'];
 $sql = my_quick_con($config) or die("MySQL problem");
 $table_t = $config['time_table'];
 // Set default time zone
@@ -46,6 +47,7 @@ function setTimeNow(fieldname) {
 </head>
 <?php
 if($_POST['submit'] == 'Update Table Values') {
+	$pid = $_POST['id'];
 	$n_fname = $_POST['fname']; 
 	$n_lname = $_POST['lname'];
 	$n_email = $_POST['email'];
@@ -63,37 +65,39 @@ if($_POST['submit'] == 'Update Table Values') {
 	if(strlen($n_feed) > 0) 	$ret = mysql_query("UPDATE $table_u SET feed = TIMESTAMP '$n_feed' WHERE id='$pid';");
 	if(strlen($n_starved) > 0) 	$ret = mysql_query("UPDATE $table_u SET starved = TIMESTAMP '$n_starved' WHERE id='$pid';");
 	print "<body><table height=100% width=100%><tr><td align=center valign=center>";
-	print "Database values updated.<br><a href=$PHP_SELF>Back to edit page</a>";
+	print 'Database values updated.<br><a href="edit_player.php?id=' . $pid . '">Back to edit page</a>';
 	print "</td></tr></table></body>";
 } else if($_POST['submit'] == 'Change Password') {
+	$pid = $_POST['id'];
 	print "<body><table height=100% width=100%><tr><td align=center valign=center>";
 	$pass1 = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass1']));
 	$pass2 = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass2'])); 
 
 	if($pass1 == $pass2) {
 		$ret = mysql_query("UPDATE $table_u SET password = '$pass1' WHERE id='$pid';");
-		print "Password updated.<br><a href=$PHP_SELF>Back to edit page</a>";
+		print 'Password updated.<br><a href="edit_player.php?id=' . $pid . '">Back to edit page</a>';
 	} else {
-		print "The passwords you entered did not match.<br><a href=$PHP_SELF>Back to edit page</a>";
+		print 'The passwords you entered did not match.<br><a href="edit_player.php?id=' . $pid . '">Back to edit page</a>';
 	}
 	print "</td></tr></table></body>";
 } else if($_POST['submit'] == 'Upload') {
+	$pid = $_POST['id'];
 	print "<body><table height=100% width=100%><tr><td align=center valign=center>";
 	$ret = mysql_query("SELECT fname, lname FROM $table_u WHERE id='$pid';");
 	$row = mysql_fetch_row($ret); 
 	$extension = basename($_FILES['new_pic']['name']);
 	$sub_ex = explode(".", $extension);
 	$extension = strtolower($sub_ex[sizeof($sub_ex) - 1]);
-	$target_path = "../pics/$row[0]_$row[1].$extension";
+	$target_path = "pics/$game_name/$row[0]_$row[1].$extension";
 	if(($extension == 'jpg') || ($extension == 'jpeg') || ($extension == 'gif')) {
-		if(move_uploaded_file($_FILES['new_pic']['tmp_name'], $target_path)) {
+		if(move_uploaded_file($_FILES['new_pic']['tmp_name'], '../' . $target_path)) {
 			$ret = mysql_query("UPDATE $table_u SET pic_path = '$target_path' WHERE id='$pid';");
-			print "Picture successfully uploaded.<br><a href='$PHP_SELF'>Back to edit page</a>";
+			print 'Picture successfully uploaded.<br><a href="edit_player.php?id=' . $pid . '">Back to edit page</a>';
 		} else {
-			print "There was an error uploading.<br><a href='$PHP_SELF'>Back to edit page</a>";
+			print 'There was an error uploading.<br><a href="edit_player.php?id=' . $pid . '">Back to edit page</a>';
 		}
 	} else {
-		print "The file you attempted to upload was not properly formatted.<br><a href='$PHP_SELF'>Back to edit page</a>";
+		print 'The file you attempted to upload was not properly formatted.<br><a href="edit_player.php?id=' . $pid . '">Back to edit page</a>';
 	}
 	print "</td></tr></table></body>";
 } else {
@@ -109,7 +113,8 @@ $row = mysql_fetch_row($ret);
 
 <tr><td width=50% valign=top>
 
-<form name="editPlayerForm" method="POST" action="<?php echo $PHP_SELF; ?>">
+<form name="editPlayerForm" method="POST" action="edit_player.php">
+<input type="hidden" name="id" value="<?= $pid; ?>" />
 <table>
 <tr>
 	<td>username:</td>
@@ -167,18 +172,20 @@ eg. 2007-04-11 21:07:49<br>
 
 </td><td valign=top>
 
-<center><form name="changePasswordForm" method=POST action="<?php echo $PHP_SELF; ?>"><table>
+<center><form name="changePasswordForm" method=POST action="edit_player.php"><table>
+<input type="hidden" name="id" value="<?= $pid; ?>" />
 <tr><td>new password:</td><td><input type='password' name='pass1' size=20 maxlength=20></td></tr>
 <tr><td>retype password:</td><td><input type='password' name='pass2' size=20 maxlength=20></td></tr>
 <tr><td colspan=2 align=center><input type='submit' name='submit' value='Change Password'></td></tr>
 </table></form>
 <hr>
-<img src='<?php echo $row[9]; ?>' height=200 alt='no image available'></img><p>
-<form name="editPictureForm" method=POST enctype='multipart/form-data' action="<?php echo $PHP_SELF; ?>">
+<img src='<?= '../' . $row[9]; ?>' height=200 alt='no image available'></img><p>
+<form name="editPictureForm" method=POST enctype='multipart/form-data' action="edit_player.php">
+<input type="hidden" name="id" value="<?= $pid; ?>" />
 <input type='hidden' name='MAX_FILE_SIZE' value='1000000'>
 new picture: <input type='file' size=30 name='new_pic'><br>
 <center><input type='submit' name='submit' value='Upload'></center>
-
+</form>
 </center>
 
 

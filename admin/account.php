@@ -12,6 +12,7 @@ $username = $_SESSION['user'];
 
 <html>
 <head>
+<title>Edit Player Account</title>
 <link rel='stylesheet' type='text/css' href='style/main.css'>
 </head>
 
@@ -28,43 +29,40 @@ if($_POST['submit'] == 'Change Password') {
 	if($pass_ret == $pass_cur) {
 		if(strlen($_POST['pass_new']) >= 4 && strlen($_POST['pass_new']) <= 20) {
 			if($pass_new == $pass_con) {
-				$ret = mysql_query("UPDATE $table_u SET password = '$pass_new' WHERE username='$username';");
+				mysql_query("UPDATE $table_u SET password = '$pass_new' WHERE username='$username';");
 				print "Password successfully changed.<br>";
-				print "<a href='" . $PHP_SELF . "'>Back</a>";
 			} else {
 				print "The passwords you entered did not match."; 
-				print "<a href='" . $PHP_SELF . "'>Back</a>";
 			}
 		} else {
 			print "Your new password must be between 4 and 20 alphanumerics.<br>";
-			print "<a href='" . $PHP_SELF . "'>Back</a>";
 		}
 	} else {
 		print "The password you entered was incorrect.<br>"; 
-		print "<a href='" . $PHP_SELF . "'>Back</a>";
 	}
+	print "<a href='account.php'>Back</a>";
 	print "</td></tr></table>";
 } else {
 ?>
 <body>
 <h3>my account</h3>
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form method="POST" action="account.php">
 <table>
-<tr><td colspan=2 align=center><b>change password</b></td></tr>
+<tr><td colspan="2" align="center"><b>change password</b></td></tr>
 <tr>
 <td>original password:</td>
-<td><input type='password' name='pass_original' size=20 maxlength=20></td>
+<td><input type="password" name="pass_original" size="20" maxlength="20"></td>
 </tr>
 <tr>
 <td>new password:</td>
-<td><input type='password' name='pass_new' size=20 maxlength=20></td>
+<td><input type="password" name="pass_new" size="20" maxlength="20"></td>
 </tr>
 <tr>
 <td>confirm new password:</td>
-<td><input type='password' name='pass_confirm' size=20 maxlength=20></td>
+<td><input type="password" name="pass_confirm" size="20" maxlength="20"></td>
 </tr>
 <tr><td colspan=2 align=center>
-<input type='submit' name='submit' value='Change Password'>
+<input type="submit" name="submit" value="Change Password'>
 </td></tr>
 </table>
 </form>
