@@ -14,12 +14,12 @@ if(isset($_SESSION['user'])) header("Location: $goto");
 <link rel='stylesheet' type='text/css' href='style/main.css'>
 </head>
 
-<body>
+<body OnLoad="document.adLogin.user.focus();">
 <center>
 <table height=100% width=100%>
 <tr><td align=center valign=center>
 <h3>admin login</h3>
-<form method=POST action=<?php echo $PHP_SELF; ?>>
+<form name="adLogin" method=POST action="login.php">
 username: <input type='text' name='user' size=10><p>
 password: <input type='password' name='pass' size=10><p>
 

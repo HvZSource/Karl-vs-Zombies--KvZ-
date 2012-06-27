@@ -12,12 +12,12 @@ require_once('../functions/quick_con.php');
 </head>
 
 <body> 
-<h3>Navagation</h3>
+<h3>Navigation</h3>
 <a href='flow.php' target='display'>Game Flow</a><br>
-<a href='time.php' target='display'>Time Zone</a><br>
+<a href='time.php' target='display'>Game Settings</a><br>
 <a href='front.php' target='display'>Edit Front Page</a><br>
 <a href='rules.php' target='display'>Edit Rules</a><br>
-<a href='../aplayers.php' target='display'>Edit Players</a><br>
+<a href='aplayers.php' target='display'>Edit Players</a><br>
 <!--<a href='twitter_set.php' target='display'>Twitter</a><br>-->
 <a href='mailer.php' target='display'>Mailing Lists</a><br>
 <a href='account.php' target='display'>My Account</a><br>

@@ -1,37 +1,37 @@
 <?php
 ob_start();
 session_start();
-require_once('functions/load_config.php');
-require_once('admin/security.php');
-require_once('functions/quick_con.php'); 
-$config = load_config('settings/config.dat');
+require_once('security.php');
+require_once('../functions/load_config.php');
+require_once('../functions/quick_con.php'); 
+$config = load_config('../settings/config.dat');
 $table_u = $config['user_table'];
 $table_v = $config['var_table'];
 $table_t = $config['time_table'];
 $sql = my_quick_con($config) or die("MySQL problem");
 
-// Set default time zone
-$ret = mysql_query("SELECT zone FROM $table_t");
-while($row = mysql_fetch_array($ret)) {
-	date_default_timezone_set($row['zone']);
+// Get game settings
+$ret = mysql_query("SELECT zone, starve_time FROM $table_t");
+$row = mysql_fetch_assoc($ret);
+date_default_timezone_set($row['zone']);
+$starve_time = $row['starve_time'];
+
+// Get OZ Revealed setting
+$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';");
+$reveal_oz = mysql_result($ret, 0);
+if($_SESSION['oz_revealed'] != $reveal_oz) {
+	$_SESSION['oz_revealed'] = $reveal_oz;
 }
 
-
-// update the starvation times and oz reveal (every 5 minutes, not on every page refresh)
+// update the starvation times and oz reveal (after 5 minutes, not on every page refresh)
 $now = time();
-$last_starvation_update = (isset($_SESSION['last_starvation_update'])) ? $_SESSION['last_starvation_update'] : $now;
+$last_starvation_update = isset($_SESSION['last_starvation_update']) ? $_SESSION['last_starvation_update'] : $now;
 if($last_starvation_update >= $now + 900) {
-	$ret = mysql_query("UPDATE $table_u SET state = -4 WHERE now() > feed + INTERVAL 2 day;"); 
-	$ret = mysql_query("UPDATE $table_u SET starved = feed + INTERVAL 2 day WHERE state = -4;");
-	$ret = mysql_query("UPDATE $table_u SET state = 0 WHERE state = -4;");
-	$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';");
-	$reveal_oz = mysql_fetch_assoc($ret);
-	$reveal_oz = $reveal_oz['value'];
+	// Kill starved zombies
+	mysql_query("UPDATE $table_u SET state = 0, starved = feed + INTERVAL $starve_time hour
+			WHERE state < 0 AND now() > feed + INTERVAL $starve_time hour AND starved = '0000-00-00 00:00:00';");
 	
 	$_SESSION['last_starvation_update'] = time();
-	$_SESSION['oz_revealed'] = $reveal_oz;	
-} else {
-	$reveal_oz = (isset($_SESSION['oz_revealed'])) ? $_SESSION['oz_revealed'] : 0;
 }
 
 $state_translate = array('-3'=>'horde', '-2'=>'horde (original)', '-1'=>'horde', '0'=>'deceased', '1'=>'resistance', '2'=>'resistance');
@@ -75,14 +75,14 @@ if($_POST['submit'] == 'Refresh') {
 
 <html>
 <head>
-<link rel='stylesheet' type='text/css' href='style/main.css'>
-<link rel='stylesheet' type='text/css' href='style/styles.css'>
-<link rel='stylesheet' type='text/css' href='style/admin.css'>
+<link rel='stylesheet' type='text/css' href='../style/main.css'>
+<link rel='stylesheet' type='text/css' href='../style/styles.css'>
+<link rel='stylesheet' type='text/css' href='../style/admin.css'>
 </head>
 
 <body>
 <h3>Player List</h3>
-<form name="playerListForm" method="POST" action="<?php echo $PHP_SELF; ?>">
+<form name="playerListForm" method="POST" action="aplayers.php">
 <center>
 
 <?php
@@ -132,12 +132,12 @@ if($show_killed) print "<th>Time of Death</th>";
 if($show_feed) print "<th>Last Fed</th>";
 if($show_starved) print "<th>Starvation Time</th>";
 if($admin) print "<th>Edit</th>";
-if($admin) print "<th>Delete</th>";
+if($admin) print "<th>Status</th>";
 ?>
 </tr>
 
 <?php
-$ret = mysql_query("SELECT fname, lname, state, killed_by, killed, feed, kills, starved, pic_path, id FROM $table_u WHERE $faction ORDER BY $sort_by $order;");
+$ret = mysql_query("SELECT fname, lname, state, killed_by, killed, feed, kills, starved, pic_path, id, active FROM $table_u WHERE $faction ORDER BY $sort_by $order;");
 if($ret && ($rows = mysql_num_rows($ret)) > 0)
 {
 	for($i = 0; $i < $rows; $i++) {
@@ -200,8 +200,12 @@ if($ret && ($rows = mysql_num_rows($ret)) > 0)
 			print "</td>";
 		}
 		
-		if($admin) print "<td align='center'><a href='admin/edit_player.php?id=".$row['id']."'>edit</a></td>";
-		if($admin) print "<td align='center'><a href='admin/delete_player.php?id=".$row['id']."'>delete</a></td>";
+		if($admin) print "<td align='center'><a href='edit_player.php?id=".$row['id']."'>edit</a></td>";
+		if($row['active']) {
+			print "<td align='center'><a href='deactivate_player.php?id=".$row['id']."'>deactivate</a></td>";
+		} else {
+			print "<td align='center'><a href='activate_player.php?id=".$row['id']."'>activate</a> | <a href='delete_player.php?id=".$row['id']."'>delete</a></td>";
+		}
 		print "</tr>";
 	}
 } else {
