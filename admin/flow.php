@@ -198,14 +198,20 @@ if($game_started) { ?>
 Let's put this game in the ground and raise everyone from the dead so we can start a whole new game!<br>
 <br>Other To Do:<br>
 -Fix bug with underscore in email address<br>
--Add lifetime kills to account page and players list?<br>
+-Show if player isn't registered for current game<br>
+-Add lifetime kills to players list?<br>
+-Add OZ setting to admin player editor<br>
 -Support two profile pics, 1 human, 1 zombie<br>
 -Add incubation time to game settings<br>
+-Add stun time to game settings<br>
+-Add game start day/time (use in OZ emails, tag qualifications, etc.)<br>
 -Control ID length through game settings rather than config file<br>
 -Stats on home page (top taggers, player counts)<br>
 -Add support for game hours (work hours, weekends, etc.) to prevent starvation at non-playing times<br>
 -Support multiple OZ's at beginning of game<br>
 -Make game creation process easier (created through admin system)<br>
+-Make site mobile friendly<br>
+-Maybe support QR code tag reports?<br>
 </td>
 </tr>
 <tr>
