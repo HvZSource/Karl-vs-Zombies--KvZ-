@@ -10,7 +10,8 @@ if($_POST['submit'] == 'Reset Password') {
 	$user = ereg_replace("[^A-Za-z0-9]","",$_POST['username']);
 	$email = ereg_replace("[^A-Za-z0-9@.]","",$_POST['email']);
 	$sql = my_quick_con($config) or die("mysql problem");
-	$ret = mysql_query("SELECT * FROM  $config[users_table] WHERE username='$user' AND email='$email';", $sql);
+	$query = "SELECT * FROM  $config[user_table] WHERE username='$user' AND email='$email';";
+	$ret = mysql_query($query, $sql);
 	if(mysql_num_rows($ret) > 0) {
 		$new = "";
 		$c_list = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -20,7 +21,7 @@ if($_POST['submit'] == 'Reset Password') {
 			$new .= substr($c_list, $n, 1); 
 		}
 		$new_hash = md5($new);
-		$ret = mysql_query("UPDATE $config[users_table] SET password = '$new_hash' WHERE username='$user';", $sql);
+		$ret = mysql_query("UPDATE $config[user_table] SET password = '$new_hash' WHERE username='$user';", $sql);
 		$header = "From: no-reply@HvZSource.com \r\n";
 		$body  = "Your password has been reset.\n\n\n";
 		$body .= "Your new password is: $new.\n\n";

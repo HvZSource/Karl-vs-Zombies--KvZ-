@@ -55,7 +55,7 @@ $zombie_reasons = array(
 );
 $rand_reason = array_rand($zombie_reasons);
 
-//email player
+//email selected OZ
 $header = "From: no-reply@HvZSource.com \r\n";
 $body  = "Hi there {$row[0]}.\n\n";
 $body .= $zombie_reasons[$rand_reason] . ' ';
@@ -64,7 +64,18 @@ $body .= 'YOU ARE THE ORIGINAL ZOMBIE! "OZ", for short ;)' . "\n\n";
 $body .= "Keep this quiet until the game starts! Remember, a zombie's best weapons are stealth and trickery.\n\n";
 $body .= "--HvZSource";
 mail($row[2], "HvZSource: Shhhh.....", $body, $header);
-	
+
+//email active players
+$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE active;");
+while($row = mysql_fetch_assoc($ret)) {
+	$body  = 'URGENT NEWS BULLETIN: We are receiving unconfirmed reports from all over the area of people exhibiting zombie-like behavior. Details are sketchy right now, but all people are urged to arm themselves until more detailed information is available.' . "\n\n";
+	$body .= 'THE ORIGINAL ZOMBIE IS AMONG US! "OZ", for short ;)' . "\n\n";
+	$body .= "Be prepared for the game to start! Remember, zombie's are stealthy, stay on your toes.\n\n";
+	$body .= "--HvZSource";
+	mail($row[2], "HvZSource: Zombies!!!", $body, $header);
+}
+
+
 } else {
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='reg-closed';");
 $reg_closed = mysql_fetch_assoc($ret);
