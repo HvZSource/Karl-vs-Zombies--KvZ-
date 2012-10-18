@@ -198,9 +198,11 @@ if($game_started) { ?>
 Let's put this game in the ground and raise everyone from the dead so we can start a whole new game!<br>
 <br>Other To Do:<br>
 -Fix bug with underscore in email address<br>
--Show if player isn't registered for current game<br>
+-Add color coding (admin controllable?) to each group, mostly on Player List page<br>
+-Show if player isn't registered for current game on account page<br>
 -Add lifetime kills to players list?<br>
 -Add OZ setting to admin player editor<br>
+-Add email to tagged player (and fed zombies?) with incubation time/feed time<br>
 -Support two profile pics, 1 human, 1 zombie<br>
 -Add incubation time to game settings<br>
 -Add stun time to game settings<br>

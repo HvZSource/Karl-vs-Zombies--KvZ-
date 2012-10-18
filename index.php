@@ -54,9 +54,9 @@ if($reg_open) {
 		} else {
 			$game_summary = 'No activity in this game yet';
 		}
-	 } else {
+	} else {
 		$game_summary = 'Registration is OPEN! Hurry and get registered for the next round of the Zombie driven Apocalypse! ';
-	 }
+	}
 } else {
 	$game_summary = 'Sorry, there\'s no game active right now. Please check back soon!';
 }
