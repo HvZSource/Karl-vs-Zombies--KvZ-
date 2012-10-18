@@ -60,7 +60,7 @@ if($_POST['submit'] == 'Login') {
 		mysql_free_result($ret);
 		$_SESSION['user'] = $logname;
 		$_SESSION['id'] = $id;
-		header('Location: index.php');
+		header('Location: account.php');
 	} else {
 		echo "&nbsp;&nbsp;|&nbsp;&nbsp;<font color=red>Invalid username/password</font>";
 	}

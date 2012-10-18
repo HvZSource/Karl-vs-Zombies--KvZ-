@@ -51,7 +51,7 @@ if($game_over == 1) {
 
 if($_POST['submit'] == 'Report Tag') {
 $victim = strtoupper(preg_replace("/[^A-Za-z0-9]/","",$_POST['victim_id']));
-$feed = $_POST['feed'];
+$feed = is_array($_POST['feed']) ? $_POST['feed']: array();
 array_unshift($feed, $_SESSION['id']);//preg_replace("/[^A-Za-z0-9]/","",)
 $hour = preg_replace("/[^0-9]/","",$_POST['hour'] + $_POST['am_pm']);
 $minute = preg_replace("/[^0-9]/","",$_POST['minute']);
@@ -226,7 +226,8 @@ else $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL $star
 for($i = 0; $i < mysql_num_rows($ret); $i++) {
 	$row = mysql_fetch_row($ret); 
 	$till_starve = $row[3];
-	print "\n\t<input name='feed[]' id='feed_me' type='checkbox' value='$row[0]' onClick='javascript:chkcontrol($i)' />$row[1] $row[2] ($till_starve)<br>"; 
+	$checked = $i < $feed_limit ? 'checked ' : '';
+	print "\n\t<input name='feed[]' id='feed_me' type='checkbox' value='$row[0]' onClick='javascript:chkcontrol($i)' $checked/>$row[1] $row[2] ($till_starve)<br>"; 
 }
 ?>&nbsp;
 </td>
