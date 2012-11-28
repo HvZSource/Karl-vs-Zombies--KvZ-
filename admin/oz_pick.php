@@ -22,18 +22,18 @@ $err = 0;
 
 if($_POST['submit'] == 'Select Original Zombie') {
 
-$oz = $_POST['oz_pick']; 
+$oz = mysql_real_escape_string($_POST['oz_pick']);
 // users table 
-mysql_query("UPDATE $table_u SET state = -2 WHERE id='$oz';");
+mysql_query("UPDATE $table_u SET state = -2 WHERE id='$oz';") or die(mysql_error());
 mysql_query("INSERT INTO $table_u (id, username, password, email, pic_path, fname, lname, state, kills, oz_opt) 
-			VALUES ('OriginalZombie','OriginalZombie','" . rand() . "','oz@humansvszombies.org','images/OZ.jpg','Original','Zombie', -3, 0, 0);");
+			VALUES ('OriginalZombie','OriginalZombie','" . rand() . "','oz@humansvszombies.org','images/OZ.jpg','Original','Zombie', -3, 0, 0);") or die(mysql_error());
 
 
 // variables table
-mysql_query("UPDATE $table_v SET value = 1 WHERE keyword='oz-selected';");
+mysql_query("UPDATE $table_v SET value = 1 WHERE keyword='oz-selected';") or die(mysql_error());
 
 
-$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE id='$oz';");
+$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE id='$oz';") or die(mysql_error());
 $row = mysql_fetch_row($ret);
 ?>
 <table height=100% width=100%><tr><td align=center valign=center>
@@ -66,18 +66,19 @@ $body .= "--HvZSource";
 mail($row[2], "HvZSource: Shhhh.....", $body, $header);
 
 //email active players
-$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE active;");
-while($row = mysql_fetch_assoc($ret)) {
-	$body  = 'URGENT NEWS BULLETIN: We are receiving unconfirmed reports from all over the area of people exhibiting zombie-like behavior. Details are sketchy right now, but all people are urged to arm themselves until more detailed information is available.' . "\n\n";
-	$body .= 'THE ORIGINAL ZOMBIE IS AMONG US! "OZ", for short ;)' . "\n\n";
-	$body .= "Be prepared for the game to start! Remember, zombie's are stealthy, stay on your toes.\n\n";
-	$body .= "--HvZSource";
+$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE active AND state !=-3;") or die(mysql_error());
+$body  = 'URGENT NEWS BULLETIN: We are receiving unconfirmed reports from all over the area of people exhibiting zombie-like behavior. Details are sketchy right now, but everyone is urged to arm themselves until more detailed information is available.' . "\n\n";
+$body .= 'THE ORIGINAL ZOMBIE IS AMONG US! "OZ", for short ;)' . "\n\n";
+$body .= "Be prepared for the game to start! Remember, zombie's are stealthy, stay on your toes.\n\n";
+$body .= "--HvZSource";
+while($row = mysql_fetch_row($ret)) {
+	//echo $row[2] . ": " . $body . "<br><br>\n\n";
 	mail($row[2], "HvZSource: Zombies!!!", $body, $header);
 }
 
 
 } else {
-$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='reg-closed';");
+$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='reg-closed';") or die(mysql_error());
 $reg_closed = mysql_fetch_assoc($ret);
 $reg_closed = $reg_closed['value'];
 if($reg_closed == 0) {
@@ -86,7 +87,7 @@ if($reg_closed == 0) {
 }
 
 if($err == 0) {
-	$ret = mysql_query("SELECT fname, lname, id FROM $table_u WHERE oz_opt=1 AND active;");
+	$ret = mysql_query("SELECT fname, lname, id FROM $table_u WHERE oz_opt=1 AND active;") or die(mysql_error());
 	if(mysql_num_rows($ret) > 0) {
 ?>
 

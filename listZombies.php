@@ -1,6 +1,7 @@
 <?php
 
-
+echo "This script disabled for security reasons."; // maybe move to admin area? What is this for?
+exit;
 
 require_once('functions/load_config.php');
 
@@ -16,7 +17,7 @@ $table_v = $config['var_table'];
 
 
 
-$ret = mysql_query("SELECT value FROM $table_v WHERE zkey='oz-revealed';");
+$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';");
 
 // this is an array fetching bug 
 

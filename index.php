@@ -37,7 +37,7 @@ if($reg_open) {
 		$result = mysql_query($query) or die(mysql_error());
 		if(mysql_num_rows($result) > 0) {
 			while($row = mysql_fetch_assoc($result)) {
-				$game_sum_array[$row["starved"]] = '<b>' . $row['player'] . '</b> starved at ' . date('g:i a', $row['starved']) . ' on ' . date('M jS', $row['starved']);
+				$game_sum_array[$row["starved"]] = '<b>' . $row['player'] . '</b> <span style="color:darkred">starved</span> at ' . date('g:i a', $row['starved']) . ' on ' . date('M jS', $row['starved']);
 			}
 		}
 		// GET Tags
@@ -45,7 +45,7 @@ if($reg_open) {
 		$result = mysql_query($query) or die(mysql_error());
 		if(mysql_num_rows($result) > 0) {
 			while($row = mysql_fetch_assoc($result)) {
-				$game_sum_array[$row["killed"]] = '<b>' . $row['tagger'] . '</b> tagged <b>' . $row['tagged'] . '</b> at ' . date('g:i a', $row['killed']) . ' on ' . date('M jS', $row['killed']);
+				$game_sum_array[$row["killed"]] = '<b>' . $row['tagger'] . '</b><span style="color:darkgreen"> tagged </span><b>' . $row['tagged'] . '</b> at ' . date('g:i a', $row['killed']) . ' on ' . date('M jS', $row['killed']);
 			}
 		}
 		if(count($game_sum_array) > 0) {
