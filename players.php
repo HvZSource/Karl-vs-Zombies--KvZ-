@@ -62,26 +62,14 @@ if($_POST['submit'] == 'Refresh') {
 <h3>Player List</h3>
 <?php
 $zom = mysql_query("SELECT count(id) FROM $table_u WHERE (`state`=-1 or `state`=-2) and active");
+$znum = mysql_result($zom, 0);
 $dead = mysql_query("SELECT count(id) FROM $table_u WHERE `state`=0 and active");
+$dnum = mysql_result($dead, 0);
 $hum = mysql_query("SELECT count(id) FROM $table_u  WHERE `state`=1 and active");
 $hnum = mysql_result($hum, 0);
-if ( $hnum > "1" ) {
-        echo "$hnum Humans<br>";
-}
-if ( $hnum == "1" ) {
-        echo "$hnum Human<br>";
-}
-$znum = mysql_result($zom, 0);
-if ( $znum > "1" ) {
-        echo "$znum Zombies<br>";
-}
-if ( $znum == "1" ) {
-        echo "$znum Zombie<br>";
-}
-$dnum = mysql_result($dead, 0);
-if ( $dnum > "0" ) {
-        echo "$dnum Deceased<br>";
-}
+echo "$hnum Human"; echo $hnum != 1 ? "s<br>": "<br>"; // Add an 's' if more than one
+echo "$znum Zombie"; echo $znum != 1 ? "s<br>": "<br>"; // Add an 's' if more than one
+echo $dnum > 0 ? "$dnum Deceased<br>" : "";
 ?>
 
 <form method=POST action="players.php">

@@ -145,6 +145,15 @@ for($i = 0; $i < sizeof($feed); $i++) { if(strlen($feed[$i]) > 0) {
 
 	print '<body bgcolor="#0000"><font color="#ffff">Tag Reported.</font><br><a href="kill.php">Go Back</a>';
 
+	//email active players
+	$header = "From: no-reply@HvZSource.com \r\n";
+	$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE active AND state !=-3;") or die(mysql_error());
+	$message .= "\n\n--HvZSource";
+	while($row = mysql_fetch_row($ret)) {
+		//echo $row[2] . ": " . $body . "<br><br>\n\n";
+		mail($row[2], "HvZSource: Zombies!!!", $message, $header);
+	}
+
 
 } else {
 	print '<a href="kill.php"><body bgcolor="#0000"><font color="#ffff">Go Back</a>';
@@ -191,9 +200,10 @@ include('template_top.php');
 </select>
 <select name="hour">
 <?php
-for($i = 1; $i <= 12; $i++) {
+for($i = 1; $i <= 11; $i++) {
 	print "<option value='$i'>$i</option>";
 }
+print "<option value='0'>12</option>";
 ?>
 </select>
 <select name="minute">

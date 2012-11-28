@@ -196,29 +196,49 @@ if($game_started) { ?>
 <?php } ?><br>&nbsp;
 <td><b>Reset Game</b><p>
 Let's put this game in the ground and raise everyone from the dead so we can start a whole new game!<br>
-<br>Other To Do:<br>
--Fix bug with underscore in email address<br>
--Add color coding (admin controllable?) to each group, mostly on Player List page<br>
--Show if player isn't registered for current game on account page<br>
--Add lifetime kills to players list?<br>
--Add OZ setting to admin player editor<br>
--Add email to tagged player (and fed zombies?) with incubation time/feed time<br>
--Support two profile pics, 1 human, 1 zombie<br>
--Add incubation time to game settings<br>
--Add stun time to game settings<br>
--Add game start day/time (use in OZ emails, tag qualifications, etc.)<br>
--Control ID length through game settings rather than config file<br>
--Stats on home page (top taggers, player counts)<br>
--Add support for game hours (work hours, weekends, etc.) to prevent starvation at non-playing times<br>
--Support multiple OZ's at beginning of game<br>
--Make game creation process easier (created through admin system)<br>
--Make site mobile friendly<br>
--Maybe support QR code tag reports?<br>
 </td>
 </tr>
 <tr>
 <td colspan=2 align=center>
 <input type='submit' name='submit' value='Advance' onClick='return confirm("Are you certain that you wish to advance the game?\n  This cannot be reversed.")'>
+</td>
+</tr>
+<tr>
+<td colspan=2>
+---- WISH LIST ----<br>
+BUGS:<br>
+-Fix bug with underscore in email address<br>
+-Game Summary messes up when OZ starves<br>
+PLAYERS HOME:<br>
+-Stats on home page (top taggers, player counts)<br>
+PLAYERS LIST:<br>
+-Add color coding (admin controllable?) to each group, mostly on Player List page<br>
+-Add lifetime kills/stats to players list?<br>
+PLAYER ACCOUNT:<br>
+-Support two profile pics, 1 human, 1 zombie (eliminate spaces in image names)<br>
+-Show if player isn't registered for current game on account page<br>
+PLAYER TAG REPORT:<br>
+-Add email to tagged player (and fed zombies?) with incubation time/new starve time<br>
+ADMIN PLAYER EDITOR:<br>
+-Add OZ pool setting and Killed By dropdown to admin player editor<br>
+ADMIN GAME SETTINGS:<br>
+-Add incubation time to game settings<br>
+-Add stun time to game settings<br>
+-Add game start day/time (use in OZ emails, tag qualifications, etc.)<br>
+-Control ID length through game settings rather than config file<br>
+-Add support for game hours (work hours, weekends, etc.) to prevent starvation at non-playing times<br>
+-Support multiple OZ's at beginning of game<br>
+-Add G-rated (stun, tag, blaster) or R-rated (shoot, kill, gun) option to game settings with disclaimer<br>
+OTHER FEATURES:<br>
+-Admin controllable messages: OZ reason, zombie report, 
+-Make settings/config.dat into config.php to prevent snoopers<br>
+-Update style HTML for modern browsers (see <a href="http://www.osundead.com/index.php">OSU HvZ</a>)<br>
+-Add human stats (time alive, zombie stuns)<br>
+-Replace mail() with notify() function that supports alternate user-controlled methods (SMS, Facebook, etc.)<br>
+-Make game creation process easier (created through admin system)<br>
+-Save Game History (using summary?)<br>
+-Make site mobile friendly<br>
+-Maybe support QR code tag reports?<br>
 </td>
 </tr>
 
