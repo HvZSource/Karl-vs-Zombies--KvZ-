@@ -1,9 +1,9 @@
 <?php
 ob_start();
 session_start();
-require_once('functions/load_config.php');
+require_once('functions/functions.php');
 require_once('functions/quick_con.php');
-$config = load_config('settings/config.dat');
+$config = load_config('settings/config.php');
 $sql = my_quick_con($config) or die("MySQL problem");
 $table_u = $config['user_table'];
 $table_v = $config['var_table'];
@@ -11,6 +11,7 @@ $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='game-started';");
 $game_started = mysql_result($ret, 0);
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='reg-open';"); 
 $reg_open = mysql_result($ret, 0);
+include('template_top.php');
 
 // get the front content and save it into the session
 if(!isset($_SESSION['content']['front'])) {
@@ -21,57 +22,18 @@ $_SESSION['content']['front'] = $row['value'];
 $front = $_SESSION['content']['front'];
 
 // Get current game summary
-$game_sum_array = array();
-$game_summary = '';
-if($reg_open) {
-	if($game_started) {
-		// GET Game Start Time
-		$query = "SELECT unix_timestamp(killed) killed FROM $table_u WHERE killed != '0000-00-00 00:00:00' ORDER BY killed ASC LIMIT 1;";
-		$result = mysql_query($query) or die(mysql_error());
-		if(mysql_num_rows($result) > 0) {
-			$row = mysql_fetch_assoc($result);
-			$game_sum_array[$row["killed"]] = '<b>Game started at ' . date('g:i a', $row['killed']) . ' on ' . date('M jS', $row['killed']) . '</b>';
-		}
-		// GET Starves
-		$query = "SELECT CONCAT(fname, ' ', lname) player, unix_timestamp(starved) starved FROM $table_u WHERE state = 0 AND active = 1 ORDER BY starved ASC;";
-		$result = mysql_query($query) or die(mysql_error());
-		if(mysql_num_rows($result) > 0) {
-			while($row = mysql_fetch_assoc($result)) {
-				$game_sum_array[$row["starved"]] = '<b>' . $row['player'] . '</b> <span style="color:darkred">starved</span> at ' . date('g:i a', $row['starved']) . ' on ' . date('M jS', $row['starved']);
-			}
-		}
-		// GET Tags
-		$query = "SELECT (SELECT (SELECT CONCAT(k.fname, ' ', k.lname) FROM $table_u k WHERE k.id = u.killed_by)) as tagger, CONCAT(u.fname, ' ', u.lname) as tagged, UNIX_TIMESTAMP(u.killed) killed FROM $table_u u WHERE active AND state IN (-1, 0) AND u.killed_by IS NOT NULL ORDER BY u.killed;";
-		$result = mysql_query($query) or die(mysql_error());
-		if(mysql_num_rows($result) > 0) {
-			while($row = mysql_fetch_assoc($result)) {
-				$game_sum_array[$row["killed"]] = '<b>' . $row['tagger'] . '</b><span style="color:darkgreen"> tagged </span><b>' . $row['tagged'] . '</b> at ' . date('g:i a', $row['killed']) . ' on ' . date('M jS', $row['killed']);
-			}
-		}
-		if(count($game_sum_array) > 0) {
-			ksort($game_sum_array);
-			$game_summary = implode("<br>\n", $game_sum_array);
-		} else {
-			$game_summary = 'No activity in this game yet';
-		}
-	} else {
-		$game_summary = 'Registration is OPEN! Hurry and get registered for the next round of the Zombie driven Apocalypse! ';
-	}
-} else {
-	$game_summary = 'Sorry, there\'s no game active right now. Please check back soon!';
-}
+$game_summary = game_summary();
 ?>
  
-<?php include('template_top.php'); ?>
  
 <!--<h3>The Humans vs. Zombies database has crashed, and we lost several days of game data. Please work with your moderators as they rebuild your game.</h3>
 <p>-->
 
 <?php print $front; ?>
 
-<p><h2>Game Summary</h2><?= $game_summary; ?></p>
+<h2>Game Summary</h2><p><?= $game_summary; ?></p>
 <br>
-<script src="http://connect.facebook.net/en_US/all.js#xfbml=1"></script><fb:like href="http://www.facebook.com/pages/Humans-Vs-Zombies/103123970670?ref=ts" width="300" font="verdana"></fb:like>
+<script type="text/javascript" src="http://connect.facebook.net/en_US/all.js#xfbml=1"></script><fb:like href="http://www.facebook.com/pages/Humans-Vs-Zombies/103123970670?ref=ts" width="300" font="verdana"></fb:like>
 <div style="padding-right:15px;">
 <br>
 <h3>HvZ Gear</h3>

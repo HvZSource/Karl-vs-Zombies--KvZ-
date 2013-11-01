@@ -2,9 +2,9 @@
 ob_start();
 session_start();
 require_once('security.php');
-require_once('functions/load_config.php');
+require_once('functions/functions.php');
 require_once('functions/quick_con.php'); 
-$config = load_config('settings/config.dat'); 
+$config = load_config('settings/config.php'); 
 $sql = my_quick_con($config) or die("MySQL problem"); 
 $table_v = $config['var_table'];
 $table_u = $config['user_table'];
@@ -22,14 +22,6 @@ mysql_query("UPDATE $table_u SET state = 0, starved = feed + INTERVAL $starve_ti
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';") or die(mysql_error());
 $reveal_oz = mysql_result($ret, 0);
 // UCWATIDIDTHAR?
-?>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Humans vs. Zombies :: Source</title>
-
-<?php
 
 $ret = mysql_query("SELECT value FROM $table_v WHERE keyword='game-started';") or die(mysql_error());
 $game_started = mysql_fetch_assoc($ret); 
@@ -48,6 +40,7 @@ if($game_over == 1) {
         header("location:game_over.php");
 }
 
+require_once('template_top.php');
 
 if($_POST['submit'] == 'Report Tag') {
 $victim = strtoupper(preg_replace("/[^A-Za-z0-9]/","",$_POST['victim_id']));
@@ -68,16 +61,16 @@ $ret = mysql_query("SELECT state, fname, lname FROM $table_u WHERE id='$victim' 
 $vrow = mysql_fetch_assoc($ret); 
 $vstate = $vrow['state'];
 if(mysql_num_rows($ret) == 0) {
-	print "<body bgcolor='#0000'><font color='#ffff'>The ID number you entered could not be found.<br>"; 
+	print "<font color='#ffff'>The ID number you entered could not be found.<br>"; 
 	$err = 1; 
 } else if($vstate <= 0) {
-	print "<body bgcolor='#0000'><font color='#ffff'>Eating that person won't help you.<br>"; 
+	print "<font color='#ffff'>Eating that person won't help you.<br>"; 
 	$err = 1; 
 } else {
 	$current_hour = date('H');
 	$current_minute = date('i');
 	if($days_ago == 0 && (($hour > $current_hour) || ($hour == $current_hour && $minute > $current_minute))) {
-		print "<body bgcolor='#0000'><font color='#ffff'>You can't eat people from the future.<br>";
+		print "<font color='#ffff'>You can't eat people from the future.<br>";
 		$err = 1;
 	}
 }
@@ -104,8 +97,8 @@ for($i = 0; $i < sizeof($feed) && $err == 0; $i++) { if(strlen($feed[$i]) > 0) {
 //	$last_hour = substr($row[3], 11, 2);
 //	$last_minute = substr($row[3], 14, 2);
 
-	if($f_state == 0) {		print "<body bgcolor='#0000'><font color='#ffff'>$feed_name is dead."; $err = 1; break; }
-	else if($f_state > 0) {		print "<body bgcolor='#0000'><font color='#ffff'>$feed_name is not (yet?) a zombie."; $err = 1; break; }
+	if($f_state == 0) {		print "<font color='#ffff'>$feed_name is dead."; $err = 1; break; }
+	else if($f_state > 0) {		print "<font color='#ffff'>$feed_name is not (yet?) a zombie."; $err = 1; break; }
 //	else if(($day == $last_day && (($hour < $last_hour) || ($hour == $last_hour && $minute < $last_minute))) || $day < $last_day) {
 //					print "$feed_name has fed more recently than this kill."; $err = 1; break;
 //	}
@@ -143,20 +136,20 @@ for($i = 0; $i < sizeof($feed); $i++) { if(strlen($feed[$i]) > 0) {
 	}
 	include("twitter.php");	
 
-	print '<body bgcolor="#0000"><font color="#ffff">Tag Reported.</font><br><a href="kill.php">Go Back</a>';
+	print '<font color="#ffff">Tag Reported.</font><br><a href="kill.php">Go Back</a>';
 
 	//email active players
 	$header = "From: no-reply@HvZSource.com \r\n";
 	$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE active AND state !=-3;") or die(mysql_error());
 	$message .= "\n\n--HvZSource";
 	while($row = mysql_fetch_row($ret)) {
-		//echo $row[2] . ": " . $body . "<br><br>\n\n";
+		//echo $row[2] . ": <br><br>\n\n";
 		mail($row[2], "HvZSource: Zombies!!!", $message, $header);
 	}
 
 
 } else {
-	print '<a href="kill.php"><body bgcolor="#0000"><font color="#ffff">Go Back</a>';
+	print '<a href="kill.php"><font color="#ffff">Go Back</a>';
 }
 print "</td></tr></table>";
 } else { ?>
@@ -178,9 +171,6 @@ function chkcontrol(j) {
 } 
 -->
 </script>
-<?php
-include('template_top.php');
-?>
 
 
 
@@ -228,7 +218,7 @@ for($i = 0; $i < 60; $i++) {
 <td>Feed Up To <?= $feed_limit; ?> Other Zombie<?= $feed_limit > 1? 's': ''; ?><br>
 (<?= $show; ?> hungriest shown)
 </td>
-<td>
+<td align="left">
 <?php
 $pid = $_SESSION['id']; 
 if($reveal_oz) $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL $starve_time hour, now()) FROM $table_u WHERE state < 0 AND id != '$pid' AND active ORDER BY feed ASC limit $show;") or die(mysql_error()); 
@@ -237,8 +227,9 @@ for($i = 0; $i < mysql_num_rows($ret); $i++) {
 	$row = mysql_fetch_row($ret); 
 	$till_starve = $row[3];
 	$checked = $i < $feed_limit ? 'checked ' : '';
-	print "\n\t<input name='feed[]' id='feed_me' type='checkbox' value='$row[0]' onClick='javascript:chkcontrol($i)' $checked/>$row[1] $row[2] ($till_starve)<br>"; 
+	print "\n\t<input name='feed[]' id='feed_$row[0]' type='checkbox' value='$row[0]' onClick='javascript:chkcontrol($i)' $checked>$row[1] $row[2] ($till_starve)<br>"; 
 }
+if($i == 0) { echo "No Zombies Left!"; }
 ?>&nbsp;
 </td>
 <?php } else { ?>
@@ -247,19 +238,21 @@ for($i = 0; $i < mysql_num_rows($ret); $i++) {
 <?php } ?>
 </tr>
 <tr>
-<td colspan=2 align=center>
+<td colspan="2" align="center">
 <input type='submit' name='submit' value='Report Tag'>
 </td>
 </tr>
 </table>
-<table width=50%>
-<tr><td align=left valign=top>
+<table width="50%">
+<tr><td align="left" valign="top">
 <ul>
 <li>Victim ID is not case sensitive</li>
 <li>Please report tag in 24 hour time!</li>
 </ul>
 
 </table>
+</center>
+</form>
 <?php include('template_bottom.php');
  
 }

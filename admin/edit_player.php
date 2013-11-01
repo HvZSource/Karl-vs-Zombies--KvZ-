@@ -2,9 +2,9 @@
 ob_start();
 session_start();
 require_once('security.php');
-require_once('../functions/load_config.php');
+require_once('../functions/functions.php');
 require_once('../functions/quick_con.php');
-$config = load_config('../settings/config.dat');
+$config = load_config('../settings/config.php');
 $game_name = $config['game_name'];
 $sql = my_quick_con($config) or die("MySQL problem");
 $table_t = $config['time_table'];
@@ -70,8 +70,8 @@ if($_POST['submit'] == 'Update Table Values') {
 } else if($_POST['submit'] == 'Change Password') {
 	$pid = $_POST['id'];
 	print "<body><table height=100% width=100%><tr><td align=center valign=center>";
-	$pass1 = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass1']));
-	$pass2 = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass2'])); 
+	$pass1 = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass1']));
+	$pass2 = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass2'])); 
 
 	if($pass1 == $pass2) {
 		$ret = mysql_query("UPDATE $table_u SET password = '$pass1' WHERE id='$pid';");

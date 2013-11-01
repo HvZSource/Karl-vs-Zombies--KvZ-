@@ -3,9 +3,9 @@ ob_start();
 session_start();
 
 require_once('security.php');
-require_once('functions/load_config.php');
+require_once('functions/functions.php');
 require_once('functions/quick_con.php');
-$config = load_config('settings/config.dat'); 
+$config = load_config('settings/config.php'); 
 $sql = my_quick_con($config) or die("SQL problem"); 
 $table_v = $config['var_table'];
 $table_u = $config['user_table'];
@@ -27,7 +27,10 @@ $game_name = $config['game_name'];
 $id = $_SESSION['id'];
 $ret = mysql_query("SELECT * FROM $table_u WHERE id='$id';"); 
 $userrow = mysql_fetch_assoc($ret);
-$c_pic_path = $userrow['pic_path'] !== null? $userrow['pic_path'] : 'images/zom_no_photo.jpg';
+$c_pic_path = $userrow['pic_path'];
+$z_pic_path = $userrow['pic_path_z'];
+$c_pic_path = file_exists($doc_root . $c_pic_path)? $c_pic_path : 'images/hum_no_photo.jpg';
+$z_pic_path = file_exists($doc_root . $z_pic_path)? $z_pic_path : 'images/zom_no_photo.jpg';
 ?>
 <?php include('template_top.php'); ?>
 
@@ -59,9 +62,9 @@ if($_POST['submit'] == 'Save Changes') {
 	if($_POST['pass_new'] != '' && $_POST['pass_confirm'] !== '') {
 		// Update User Password
 		$pass_ret = $userrow['password'];
-		$pass_cur = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass_original']));
-		$pass_new = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass_new']));
-		$pass_con = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass_confirm']));
+		$pass_cur = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass_original']));
+		$pass_new = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass_new']));
+		$pass_con = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass_confirm']));
 		print "<tr><td align=center valign=center>";
 		if($pass_ret == $pass_cur) {
 			if(strlen($_POST['pass_new']) >= 4 && strlen($_POST['pass_new']) <= 20) {
@@ -80,17 +83,37 @@ if($_POST['submit'] == 'Save Changes') {
 		print "</td></tr>";
 	}
 	
-	if(is_uploaded_file($_FILES['new_pic']['tmp_name'])) {
+	
+    if(is_uploaded_file($_FILES['new_pic']['tmp_name'])) {
 		// Upload new photo
 		$extension = basename($_FILES['new_pic']['name']);
 		$sub_ex = explode(".", $extension); 
 		$extension = strtolower($sub_ex[sizeof($sub_ex) - 1]);
-		$target_path = "pics/$game_name/{$userrow['fname']}_{$userrow['lname']}.$extension";
+		$target_path = "pics/{$game_name}/{$userrow['user_id']}.{$extension}";
 		print "<tr><td align=center valign=center>";
-		if(($extension == 'jpg') || ($extension == 'jpeg') || ($extension == 'gif')) {
+		if(($extension == 'jpg') || ($extension == 'jpeg') || ($extension == 'png') || ($extension == 'gif')) {
 			if(move_uploaded_file($_FILES['new_pic']['tmp_name'], $target_path)) {
 				mysql_query("UPDATE $table_u SET pic_path = '$target_path' WHERE id='$id';");
-				print "Picture successfully uploaded.<br>"; 
+				print "Human picture successfully uploaded.<br>"; 
+			} else {
+				print "There was an error uploading.<br>";
+			}
+		} else {
+			print "The file you attempted to upload was not properly formatted.<br>";
+		}
+		print "</td></tr>";
+    }
+	if(is_uploaded_file($_FILES['new_z_pic']['tmp_name'])) {
+		// Upload new photo
+		$extension = basename($_FILES['new_z_pic']['name']);
+		$sub_ex = explode(".", $extension); 
+		$extension = strtolower($sub_ex[sizeof($sub_ex) - 1]);
+		$target_path = "pics/{$game_name}/{$userrow['user_id']}Z.{$extension}";
+		print "<tr><td align=center valign=center>";
+		if(($extension == 'jpg') || ($extension == 'jpeg') || ($extension == 'png') || ($extension == 'gif')) {
+			if(move_uploaded_file($_FILES['new_z_pic']['tmp_name'], $target_path)) {
+				mysql_query("UPDATE {$table_u} SET pic_path_z = '{$target_path}' WHERE id='{$id}';");
+				print "Zombie picture successfully uploaded.<br>"; 
 			} else {
 				print "There was an error uploading.<br>";
 			}
@@ -137,7 +160,7 @@ if($_POST['submit'] == 'Save Changes') {
 		$alive = mysql_result($ret, 0);
 		echo 'Time alive: ' . $alive . '<br>';
 	}
-	if($userrow['state'] == -1 || ($userrow['state'] == -2 && $oz_revealed)) {
+	elseif($userrow['state'] == -1 || ($userrow['state'] == -2 && $oz_revealed)) {
 		$ret = mysql_query("SELECT TIMEDIFF(feed + INTERVAL $starve_time hour, NOW()), killed_by FROM $table_u WHERE id = '$id' AND active;") or die(mysql_error()); 
 		$z_row = mysql_fetch_array($ret);
 		$alive = $z_row[0];
@@ -163,23 +186,35 @@ if($_POST['submit'] == 'Save Changes') {
 <b>Career:</b><br>
 Lifetime kills: <?= $userrow['lifetime_kills'] + $userrow['kills']; ?>, Games completed: <?= $userrow['games_completed']; ?>
 <br>
-<?php if(!$userrow['active'] && !$reg_closed) { ?>
-<form method=POST action="account.php">
 <table border="0">
-<tr><td colspan=2 align=center><h2>Registration is Open!</h2></td></tr>
+<?php if($userrow['active']) { ?>
+<tr><td colspan=2 align=center><h2>You're registered!</h2></td>
+</tr>
+<tr>
+<td colspan=2>You are registered for the current HvZ game. Know the <a href="rules.php">rules</a>, be safe, and have FUN!</td>
+</tr>
+<? } elseif(!$userrow['active'] && $reg_open && !$reg_closed) { ?>
+<tr><td colspan=2 align=center><h2>Registration is Open!</h2></td>
+</tr>
 <tr>
 <td>Registration is open for the next HvZ game. If you'd like to<br>join (you know you want to) just click the "Join Game" button!</td>
-<td><input type='submit' name='submit' value='Join Game!' >
-</td></tr>
-</table><br>
-</form>
+<td><form method=POST action="account.php"><input type='submit' name='submit' value='Join Game!' ></form></td>
+</tr>
+<? } else { ?>
+<tr><td align=center><h2>Registration is closed.</h2></td>
+</tr>
+<tr>
+<td>Registration for the next HvZ game is closed at this time. If you'd<br>like to join (you know you want to) please contact an admin.</td>
+</tr>
 <? } ?>
+</table><br>
+
 
 <form method="POST" enctype="multipart/form-data" action="account.php">
 <table border=1 valign="top">
 <tr><td colspan=2 align="center"><h2>Your Settings</h2></td></tr>
 <tr>
-<td valign="top">In OZ Pool:</td>
+<td valign="top">In Original Zombie Drawing:</td>
 <td><input type='checkbox' name='oz_opt' value='1' <?= $userrow['oz_opt'] ? 'checked' : ''; ?>/></td>
 </tr>
 <tr>
@@ -198,10 +233,17 @@ Lifetime kills: <?= $userrow['lifetime_kills'] + $userrow['kills']; ?>, Games co
 <input type='password' name='pass_confirm' size=20 maxlength=20><small>Confirm New Password</small></td>
 </tr>
 <tr>
-<td><img src='<?php echo $c_pic_path; ?>' height=200></td>
-<td valign="top">
+<td>Human Picture<br><img src='<?php echo $c_pic_path; ?>' height=200><br>
+Upload a new picture:<br><input type='file' size=30 name='new_pic'>
+</td>
+<td>Zombie Picture<br><img src='<?php echo $z_pic_path; ?>' height=200><br>
+Upload a new picture:<br><input type='file' size=30 name='new_z_pic'>
+</td>
+</tr>
+<tr>
+<td valign="top" colspan="2">
 <input type='hidden' name='MAX_FILE_SIZE' value='1000000'>
-Upload a new picture:<br><input type='file' size=30 name='new_pic'><br>
+<br>
 <small>
 Acceptable formats are JPEG, JPG, and GIF.<br>
 The file must be under 1 MB.<br>
@@ -221,7 +263,7 @@ Any picture deemed inappropriate will be removed, and repeated<br>attempts to up
 <?php if(!$userrow['active']) { ?>
 <font size="3">You aren't registered for a current game.</font><br>
 <? } else { ?>
-<font size="3">Your ID is <span id="id" style="display: none; font-weight: bold;"><?= $id; ?></span><a id="show" href="javascript:void(0);" onClick="javascript:document.getElementById('id').style.display='inline';document.getElementById('show').style.display='none';">show</a></font><br>
+<font size="3">Your ID is <span id="id" style="display: none; font-weight: bold;"><?= $id; ?></span><a id="show" href="javascript:void(0);" onClick="javascript:document.getElementById('id').style.display='inline';document.getElementById('show').style.display='none';">[click to show]</a></font><br>
 <? } ?>
 </center>
 <?php

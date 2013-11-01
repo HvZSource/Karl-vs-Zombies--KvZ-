@@ -2,9 +2,9 @@
 ob_start();
 session_start();
 require_once('security.php');
-require_once('../functions/load_config.php');
+require_once('../functions/functions.php');
 require_once('../functions/quick_con.php'); 
-$config = load_config('../settings/config.dat');
+$config = load_config('../settings/config.php');
 $table_u = $config['user_table'];
 $table_v = $config['var_table'];
 $table_t = $config['time_table'];

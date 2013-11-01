@@ -3,11 +3,11 @@
 echo "This script disabled for security reasons."; // maybe move to admin area? What is this for?
 exit;
 
-require_once('functions/load_config.php');
+require_once('functions/functions.php');
 
 require_once('functions/quick_con.php');
 
-$config = load_config('settings/config.dat'); 
+$config = load_config('settings/config.php'); 
 
 $sql = my_quick_con($config) or die("SQL problem"); 
 

@@ -1,14 +1,14 @@
 <?php
 ob_start();
 session_start();
-require_once('functions/load_config.php');
+require_once('functions/functions.php');
 require_once('functions/quick_con.php');
-$config = load_config('settings/config.dat');
+$config = load_config('settings/config.php');
 
 if($_POST['submit'] == 'Reset Password') {
 	print "<table width=100% height=100%><tr><td align=center valign=center>";
-	$user = ereg_replace("[^A-Za-z0-9]","",$_POST['username']);
-	$email = ereg_replace("[^A-Za-z0-9@.]","",$_POST['email']);
+	$user = preg_replace("/[^A-Za-z0-9]/","",$_POST['username']);
+	$email = preg_replace("/[^A-Za-z0-9@.]/","",$_POST['email']);
 	$sql = my_quick_con($config) or die("mysql problem");
 	$query = "SELECT * FROM  $config[user_table] WHERE username='$user' AND email='$email';";
 	$ret = mysql_query($query, $sql);

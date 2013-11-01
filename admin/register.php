@@ -1,8 +1,8 @@
 <?php
 ob_start();
-require_once('../functions/load_config.php');
+require_once('../functions/functions.php');
 require_once('../functions/quick_con.php');
-$config = load_config('../settings/config.dat');
+$config = load_config('../settings/config.php');
 ?>
 
 <html>
@@ -14,11 +14,11 @@ $config = load_config('../settings/config.dat');
 <?php
 if($_POST['submit'] == 'Register') {
 $err = 0; 
-$username = ereg_replace("[^A-Za-z0-9]","",$_POST['username']); 
-$password1 = ereg_replace("[^A-Za-z0-9]","",$_POST['password1']);
-$password2 = ereg_replace("[^A-Za-z0-9]","",$_POST['password2']);
-$email_address = ereg_replace("[^A-Za-z0-9@.]","",$_POST['email_address']);
-$reg_confirm = ereg_replace("[^A-Za-z0-9]","",$_POST['confirm']);
+$username = preg_replace("/[^A-Za-z0-9]/","",$_POST['username']); 
+$password1 = preg_replace("/[^A-Za-z0-9]/","",$_POST['password1']);
+$password2 = preg_replace("/[^A-Za-z0-9]/","",$_POST['password2']);
+$email_address = preg_replace("/[^A-Za-z0-9@.]/","",$_POST['email_address']);
+$reg_confirm = preg_replace("/[^A-Za-z0-9]/","",$_POST['confirm']);
 
 print "<body><table height=100% width=100%><tr><td align=center valign=center>";
 if(strlen($username) < 4) {

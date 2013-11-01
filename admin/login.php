@@ -1,9 +1,9 @@
 <?php
 ob_start();
 session_start();
-require_once('../functions/load_config.php');
+require_once('../functions/functions.php');
 require_once('../functions/quick_con.php');
-$config = load_config('../settings/config.dat');
+$config = load_config('../settings/config.php');
 $goto = $config['admin_login_goto'];
 if(isset($_SESSION['user'])) header("Location: $goto");
 ?>
@@ -25,8 +25,8 @@ password: <input type='password' name='pass' size=10><p>
 
 <?php
 if($_POST['submit'] == 'Login') {
-	$logname = ereg_replace("[^A-Za-z0-9]","",$_POST['user']);
-	$logpass = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass']));
+	$logname = preg_replace("/[^A-Za-z0-9]/","",$_POST['user']);
+	$logpass = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass']));
 	$sql = my_quick_con($config) or die("MySQL problem"); 
 	$table_a = $config['admin_table'];
 	$ret = mysql_query("SELECT password FROM $table_a WHERE username='$logname';");

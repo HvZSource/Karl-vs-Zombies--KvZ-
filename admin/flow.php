@@ -2,9 +2,9 @@
 ob_start();
 session_start();
 require_once('security.php'); 
-require_once('../functions/load_config.php'); 
+require_once('../functions/functions.php'); 
 require_once('../functions/quick_con.php'); 
-$config = load_config('../settings/config.dat');
+$config = load_config('../settings/config.php');
 $sql = my_quick_con($config) or die("Database Problem"); 
 $table_v = $config['var_table'];
 $table_u = $config['user_table'];
@@ -29,6 +29,17 @@ if($_POST['submit'] == 'Advance') {
 		$message="The original zombie is being chosen!";
 	} elseif($step == 'game-over'){
 		$message = "Humans Vs. Zombies is over! Thanks for playing!";
+		// Save game history
+		$query = "SELECT IF((SELECT COUNT(user_id) FROM start_users WHERE active =1 AND state = -1)>0, (SELECT `killed` FROM `start_users` ORDER BY `killed` DESC LIMIT 1), (SELECT `starved` FROM `start_users` ORDER BY `starved` DESC LIMIT 1)) end_time;";
+		$ret = mysql_query($query) or die("SQL Error (line " . __LINE__ . "): " . mysql_error() . '---' . $query);
+        $end_datetime = mysql_result($ret, 0);
+		$query = "INSERT INTO games SET 
+            title = (SELECT DATE_FORMAT(killed, '%M %D %Y at %l:%i %p') from $table_u WHERE killed != '0000-00-00 00:00:00' ORDER BY killed ASC LIMIT 1), 
+            start_datetime = (SELECT killed from $table_u WHERE killed != '0000-00-00 00:00:00' ORDER BY killed ASC LIMIT 1),
+            end_datetime = '{$end_datetime}',
+            summary = '" . mysql_real_escape_string(game_summary()) . "',
+            active = 0;";
+		mysql_query($query) or die("SQL Error (line " . __LINE__ . "): " . mysql_error() . '---' . $query);
 		// Clean up phantom Original Zombie user, copy stats to user's account
 		$query = "SELECT kills, killed, feed FROM $table_u WHERE state = -3;"; 
 		$ret = mysql_query($query) or die("SQL Error (line " . __LINE__ . "): " . mysql_error() . '---' . $query);
@@ -39,10 +50,14 @@ if($_POST['submit'] == 'Advance') {
 			$query = "DELETE FROM $table_u WHERE id = 'OriginalZombie';";
 			mysql_query($query) or die("SQL Error (line " . __LINE__ . "): " . mysql_error() . '---' . $query);
 		}
-		// Reset all users to fresh, saving stats
+		// Save active player stats
 		$query = "UPDATE $table_u SET 
-				lifetime_kills = lifetime_kills + kills, 
+				lifetime_kills = lifetime_kills + kills,
 				games_completed = games_completed + 1,
+				WHERE active = 1;";
+		mysql_query($query) or die("SQL Error (line " . __LINE__ . "): " . mysql_error() . '---' . $query);
+		// Reset all users to fresh
+		$query = "UPDATE $table_u SET 
 				active = 0, state = 1, kills = 0, killed_by = null,
 				killed = '0000-00-00 00:00:00', feed = '0000-00-00 00:00:00', starved = '0000-00-00 00:00:00';";
 		mysql_query($query) or die("SQL Error (line " . __LINE__ . "): " . mysql_error() . '---' . $query);
@@ -207,38 +222,50 @@ Let's put this game in the ground and raise everyone from the dead so we can sta
 <td colspan=2>
 ---- WISH LIST ----<br>
 BUGS:<br>
+-If tags are reported out of order, keep most recent date for feed time<br>
 -Fix bug with underscore in email address<br>
--Game Summary messes up when OZ starves<br>
 PLAYERS HOME:<br>
 -Stats on home page (top taggers, player counts)<br>
 PLAYERS LIST:<br>
 -Add color coding (admin controllable?) to each group, mostly on Player List page<br>
 -Add lifetime kills/stats to players list?<br>
 PLAYER ACCOUNT:<br>
--Support two profile pics, 1 human, 1 zombie (eliminate spaces in image names)<br>
 -Show if player isn't registered for current game on account page<br>
 PLAYER TAG REPORT:<br>
--Add email to tagged player (and fed zombies?) with incubation time/new starve time<br>
+-Distributed Sharing option (ex: tagger chooses to split 48 hours: either keep 48 for yourself or share 2@24, 3@16, 4@12, etc.)<br>
+-Send notice to tagged player (and fed zombies?) with incubation time/new starve time<br>
+-Default form fields to current time<br>
 ADMIN PLAYER EDITOR:<br>
--Add OZ pool setting and Killed By dropdown to admin player editor<br>
+-Add OZ pool setting and Killed/Tagged By dropdown to admin player editor<br>
+ADMIN MAILING LIST:<br>
+-Add functionality to actually send message to generated list<br>
 ADMIN GAME SETTINGS:<br>
 -Add incubation time to game settings<br>
 -Add stun time to game settings<br>
+-Control Allowable picture extensions through game settings<br>
 -Add game start day/time (use in OZ emails, tag qualifications, etc.)<br>
 -Control ID length through game settings rather than config file<br>
 -Add support for game hours (work hours, weekends, etc.) to prevent starvation at non-playing times<br>
--Support multiple OZ's at beginning of game<br>
--Add G-rated (stun, tag, blaster) or R-rated (shoot, kill, gun) option to game settings with disclaimer<br>
+-Support multiple OZ's at beginning of game (maybe select one-at-a-time selection)<br>
+-Add G-rated (stun, tag, blaster, dart) or R-rated (shoot, kill, gun, bullet) option to game settings with disclaimer<br>
 OTHER FEATURES:<br>
--Admin controllable messages: OZ reason, zombie report, 
--Make settings/config.dat into config.php to prevent snoopers<br>
+*-Make game, users, admins and maybe settings object oriented using classes (OOP)<br>
+-Admin controllable messages: OZ reason, zombie report, new missions<br>
+-Take advantage of partially implemented "Factions"<br>
+-Create admin controlled overlay image for factions (small? transparent? side banner?)<br>
+-Create profile (overlay?) image for starved users<br>
 -Update style HTML for modern browsers (see <a href="http://www.osundead.com/index.php">OSU HvZ</a>)<br>
--Add human stats (time alive, zombie stuns)<br>
+-Add human stats (time alive, maybe zombie stuns, survivor place/humans left when tagged)<br>
 -Replace mail() with notify() function that supports alternate user-controlled methods (SMS, Facebook, etc.)<br>
--Make game creation process easier (created through admin system)<br>
--Save Game History (using summary?)<br>
+-Make game creation process easier (created through admin system): "No Game at this domain. Create one? [enter_reg_admin_code]"<br>
+-Save Game Actions: game_actions table: action_id, game_id, user_id, recipient_id, action_type (enum? tagged, starved, joined), timestamp<br>
+-Support multiple active games consecutively<br>
+-Use game activity table for FB-like "Friendship" view/history<br>
 -Make site mobile friendly<br>
--Maybe support QR code tag reports?<br>
+-Support QR code tag reports?<br>
+-One word: <a target="_top" href="https://developers.google.com/maps/documentation/javascript/examples/layer-heatmap">Heat Maps</a>! (think tag/stun reporting)<br>
+<br>
+(*) Currently Under Development
 </td>
 </tr>
 

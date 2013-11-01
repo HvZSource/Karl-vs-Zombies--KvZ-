@@ -2,9 +2,9 @@
 ob_start();
 session_start();
 require_once('security.php');
-require_once('../functions/load_config.php');
+require_once('../functions/functions.php');
 require_once('../functions/quick_con.php');
-$config = load_config('../settings/config.dat');
+$config = load_config('../settings/config.php');
 $sql = my_quick_con($config) or die("MySQL problem"); 
 $table_v = $config['var_table']; 
 $table_u = $config['user_table'];
@@ -25,8 +25,8 @@ if($_POST['submit'] == 'Select Original Zombie') {
 $oz = mysql_real_escape_string($_POST['oz_pick']);
 // users table 
 mysql_query("UPDATE $table_u SET state = -2 WHERE id='$oz';") or die(mysql_error());
-mysql_query("INSERT INTO $table_u (id, username, password, email, pic_path, fname, lname, state, kills, oz_opt) 
-			VALUES ('OriginalZombie','OriginalZombie','" . rand() . "','oz@humansvszombies.org','images/OZ.jpg','Original','Zombie', -3, 0, 0);") or die(mysql_error());
+mysql_query("INSERT INTO $table_u (id, username, password, email, pic_path, pic_path_z, fname, lname, state, kills, oz_opt) 
+			VALUES ('OriginalZombie','OriginalZombie','" . rand() . "','oz@humansvszombies.org','images/OZ.jpg','images/OZ.jpg','Original','Zombie', -3, 0, 0);") or die(mysql_error());
 
 
 // variables table
