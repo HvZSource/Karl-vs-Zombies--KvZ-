@@ -2,9 +2,9 @@
 ob_start();
 session_start();
 require_once('security.php');
-require_once('../functions/load_config.php');
+require_once('../functions/functions.php');
 require_once('../functions/quick_con.php');
-$config = load_config('../settings/config.dat'); 
+$config = load_config('../settings/config.php'); 
 $sql = my_quick_con($config) or die("SQL problem"); 
 $table_u = $config['admin_table'];
 $username = $_SESSION['user'];
@@ -21,9 +21,9 @@ if($_POST['submit'] == 'Change Password') {
 	$ret = mysql_query("SELECT password FROM $table_u WHERE username='$username';");
 	$pass_ret = mysql_fetch_assoc($ret);
 	$pass_ret = $pass_ret['password'];
-	$pass_cur = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass_original']));
-	$pass_new = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass_new']));
-	$pass_con = md5(ereg_replace("[^A-Za-z0-9]","",$_POST['pass_confirm']));
+	$pass_cur = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass_original']));
+	$pass_new = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass_new']));
+	$pass_con = md5(preg_replace("/[^A-Za-z0-9]/","",$_POST['pass_confirm']));
 	print "<table width=100% height=100%><tr><td align=center valign=center>";
 	
 	if($pass_ret == $pass_cur) {

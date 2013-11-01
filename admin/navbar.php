@@ -2,7 +2,7 @@
 ob_start();
 session_start();
 require_once('security.php'); 
-require_once('../functions/load_config.php'); 
+require_once('../functions/functions.php'); 
 require_once('../functions/quick_con.php'); 
 ?>
 

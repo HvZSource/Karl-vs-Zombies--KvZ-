@@ -1,8 +1,8 @@
 <?php
 ob_start();
-require_once('functions/load_config.php');
+require_once('functions/functions.php');
 require_once('functions/quick_con.php'); 
-$config = load_config('settings/config.dat'); 
+$config = load_config('settings/config.php'); 
 $id = $_SESSION['id'];
 $sql = my_quick_con($config) or die("MySQL problem"); 
 $table_v = $config['var_table']; 
@@ -29,12 +29,12 @@ include('template_top.php');
 
 if($_POST['submit'] == 'Register') {
 $err = 0; 
-$fname = ereg_replace("[^A-Za-z0-9]","",$_POST['firstname']);
-$lname = ereg_replace("[^A-Za-z0-9]","",$_POST['lastname']);
-$username = ereg_replace("[^A-Za-z0-9]","",$_POST['username']);
-$password1 = ereg_replace("[^A-Za-z0-9]","",$_POST['password1']);
-$password2 = ereg_replace("[^A-Za-z0-9]","",$_POST['password2']); 
-$email_address = ereg_replace("[^A-Za-z0-9@_.-]","",$_POST['email_address']);
+$fname = preg_replace("/[^A-Za-z0-9]/","",$_POST['firstname']);
+$lname = preg_replace("/[^A-Za-z0-9]/","",$_POST['lastname']);
+$username = preg_replace("/[^A-Za-z0-9]/","",$_POST['username']);
+$password1 = preg_replace("/[^A-Za-z0-9]/","",$_POST['password1']);
+$password2 = preg_replace("/[^A-Za-z0-9]/","",$_POST['password2']); 
+$email_address = preg_replace("/[^A-Za-z0-9@_.-]/","",$_POST['email_address']);
 
 if($_POST['oz_opt'] == 'oz') {
 	$oz_opt = 1; 
@@ -102,7 +102,7 @@ print "<a href='register.php'>Try again</a>";
 				$valid_id = 1; 
 			}
 		}
-		mysql_query("INSERT INTO $table_u (id, fname, lname, username, password, email, oz_opt, state, kills) VALUES ('$id','$fname','$lname','$username','$password','$email_address','$oz_opt', 1, 0);");
+		mysql_query("INSERT INTO $table_u (id, fname, lname, username, password, email, oz_opt, state, kills, killed) VALUES ('$id','$fname','$lname','$username','$password','$email_address','$oz_opt', 1, 0, '0000-00-00 00:00:00');");
 		print "Registered.<br>";
                 print "<a href='index.php'>Home</a><br><br> Your ID is: ";
                 print $id; 

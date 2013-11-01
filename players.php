@@ -1,9 +1,9 @@
 <?php
 ob_start();
 session_start();
-require_once('functions/load_config.php');
+require_once('functions/functions.php');
 require_once('functions/quick_con.php'); 
-$config = load_config('settings/config.dat');
+$config = load_config('settings/config.php');
 $table_u = $config['user_table'];
 $table_v = $config['var_table'];
 $table_t = $config['time_table'];
@@ -25,8 +25,8 @@ $state_translate = array('-3'=>'Zombie', '-2'=>'Original Zombie', '-1'=>'Zombie'
 if($_POST['submit'] == 'Refresh') {
 	$post_faction_array = array('a'=>'1 = 1', 'r'=>'state > 0', 'h'=>'state < 0', 'd'=>'state = 0'); 
 	if(!$reveal_oz) {
-		$post_faction_array['r'] = 'state > 0 OR state = -2';
-		$post_faction_array['h'] = 'state = -1 OR state = -3';
+		$post_faction_array['r'] = '(state > 0 OR state = -2)';
+		$post_faction_array['h'] = '(state = -1 OR state = -3)';
 	}
 	$post_sort_by_array = array('ln'=>'lname', 'fn'=>'fname', 'ks'=>'kills', 'kd'=>'killed_by', 'fd'=>'feed', 'sd'=>'starved');
 	$post_order_array = array('a'=>'ASC', 'd'=>'DESC');
@@ -123,24 +123,28 @@ if($show_starved) print "<td>Time of Starvation</td>";
 </tr>
 
 <?php
-$ret = mysql_query("SELECT fname, lname, state, killed_by, killed, feed, kills, starved, pic_path, id FROM $table_u WHERE $faction AND active ORDER BY $sort_by $order;"); 
+$ret = mysql_query("SELECT fname, lname, state, killed_by, killed, feed, kills, starved, 
+        if(state IN (0, -1," . ($reveal_oz?" -2,":"") . " -3), pic_path_z, pic_path) pic_path, 
+        id FROM $table_u WHERE $faction AND active ORDER BY $sort_by $order;"); 
 for($i = 0; $i < mysql_num_rows($ret); $i++) {
 	
 	print "<tr>";
 	$row = mysql_fetch_array($ret);
+    $no_photo = $row[2]>0?"images/hum_no_photo.jpg":"images/zom_no_photo.jpg";
+	if($row[2] == -2 && !$reveal_oz) {
+		$status_row = "<td>Human</td>";
+        $no_photo = "images/hum_no_photo.jpg";
+	} else {
+		$status_row = "<td>{$state_translate[$row[2]]}</td>";
+	}
 	if($show_pics) {
-		$pic_path = strlen($row[8]) > 0 ? $row[8] : "images/zom_no_photo.jpg";
+		$pic_path = strlen($row["pic_path"]) > 0 ? $row["pic_path"] : $no_photo;
 		$img_size = getimagesize($pic_path);
 		//echo '<!-- '; var_dump($img_size); echo ' -->';
 		$img_size = $img_size[1] < 200 ? $img_size[1] : '200';
 		print "<td><center><img src='$pic_path' height='$img_size'></center></td>";
 	}
-	print "<td>$row[0] $row[1]</td><td>";
-	if($row[2] == -2 && !$reveal_oz) {
-		print "Human";
-	} else {
-		print $state_translate[$row[2]];
-	}
+	print "<td>$row[0] {$row[1]}</td>\n{$status_row}";
 	if($show_kills) {
 		print "<td>";
 		if($row[2] == -2 && !$reveal_oz) {
