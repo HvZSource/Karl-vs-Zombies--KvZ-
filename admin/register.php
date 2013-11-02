@@ -49,15 +49,16 @@ print "Incorrect confirmation password.<br>";
 if($err == 1) {
 print "<a href='register.php'>Try again</a>";
 } else {
-$sql = my_quick_con($config) or die("MySQL Problem");
+$sql = my_quick_con($config) or die("MySQL Problem Connecting: " . mysql_error());
 $table_a = $config['admin_table'];
 $password = md5($password1);
 $ret = mysql_query("SELECT * FROM $table_a WHERE username='$username';");
 if(mysql_num_rows($ret) > 0) {
 	print "An admin with this username already exists.";
 } else {
-	$ret = mysql_query("INSERT INTO $table_a (username, password, email) VALUES ('$username','$password','$email_address');");
-	if(!$ret) print "ERROR." . mysql_error($sql) . "<br>";
+	$query = "INSERT INTO $table_a (username, password, email) VALUES ('$username','$password','$email_address');";
+	$ret = mysql_query($query);
+	if(!$ret) print "ERROR." . mysql_error($sql) . "<br>$query";
 	print "Registered.<br>";
 	print "<a href=login.php>Back to admin login</a>";
 }

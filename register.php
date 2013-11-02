@@ -4,9 +4,9 @@ require_once('functions/functions.php');
 require_once('functions/quick_con.php'); 
 $config = load_config('settings/config.php'); 
 $id = $_SESSION['id'];
-$sql = my_quick_con($config) or die("MySQL problem"); 
+$sql = my_quick_con($config) or die("MySQL problem: " . mysql_error()); 
 $table_v = $config['var_table']; 
-$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='reg-open';"); 
+$ret = mysql_query("SELECT value FROM {$table_v} WHERE keyword='reg-open';"); 
 
 $open = mysql_fetch_assoc($ret);
 $open = $open['value'];
@@ -17,7 +17,7 @@ if($open == 0) {
 	header("Location:reg_closed.php");
 }
 
-$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='reg-closed';");
+$ret = mysql_query("SELECT value FROM {$table_v} WHERE keyword='reg-closed';");
 $closed = mysql_fetch_assoc($ret); 
 $closed = $closed['value'];
 if($closed == 1) {
@@ -73,7 +73,7 @@ print "Passwords do not match.<br>";
 if($err == 1) {
 print "<a href='register.php'>Try again</a>";
 } else {
-$sql = my_quick_con($config) or die("MySQL problem"); 
+$sql = my_quick_con($config) or die("MySQL problem: " . mysql_error()); 
 $table_u = $config['user_table'];
 $password = md5($password1);
 $ret = mysql_query("SELECT * FROM $table_u WHERE username='$username';");
@@ -82,7 +82,7 @@ print "Someone has already registered with that username.<br>";
 print "<a href='register.php'>Try again</a>";
 } else {
 	$id = '';
-	$ret = mysql_query("SELECT * FROM $table_u WHERE email='$email_address';"); 
+	$ret = mysql_query("SELECT * FROM {$table_u} WHERE email='{$email_address}';"); 
 	if(mysql_num_rows($ret) > 0) {
 		print "Someone has already registered with that email address.<br>"; 
 		print "<a href='register.php'>Try again</a>";
@@ -97,15 +97,14 @@ print "<a href='register.php'>Try again</a>";
 				$n = rand() % 35;
 				$id .= substr($c_list, $n, 1); 
 			}
-			$ret = mysql_query("SELECT * FROM $table_u WHERE id='$id';");
+			$ret = mysql_query("SELECT * FROM {$table_u} WHERE id='{$id}';");
 			if(mysql_num_rows($ret) == 0) {
 				$valid_id = 1; 
 			}
 		}
-		mysql_query("INSERT INTO $table_u (id, fname, lname, username, password, email, oz_opt, state, kills, killed) VALUES ('$id','$fname','$lname','$username','$password','$email_address','$oz_opt', 1, 0, '0000-00-00 00:00:00');");
+		mysql_query("INSERT INTO $table_u (id, fname, lname, username, password, email, oz_opt, state, kills, killed) VALUES ('{$id}','{$fname}','{$lname}','{$username}','{$password}','{$email_address}','{$oz_opt}', 1, 0, '0000-00-00 00:00:00');");
 		print "Registered.<br>";
-                print "<a href='index.php'>Home</a><br><br> Your ID is: ";
-                print $id; 
+                print "<a href='index.php'>Home</a><br><br> Your ID is: {$id}";
                 print "<br>Please write it down and carry it with you during the game.  If a zombie tags you, please give them your ID. <br>You can also find your ID in the My Account section of the site.";
 
 		//TWITTER
@@ -116,9 +115,9 @@ print "<a href='register.php'>Try again</a>";
 		//email player
 
 $header = "From: no-reply@HvZSource.com \r\n";
-$body  = "Hi there $fname.\n\n";
+$body  = "Hi there {$fname}.\n\n";
 $body .= "Thanks for Registering for HvZ.\n\n\n";
-$body .= "Your ID nubmer is: $id.  Please write it down and carry it with you at all times.\n\n";
+$body .= "Your ID number is: {$id}.  Please write it down and carry it with you at all times.\n\n";
 $body .= "You can change your password and find your ID number in your account page, once you login.\n\n";
 $body .= "--HvZSource";
 mail($email_address, "HvZSource: Registration Confirmation", $body, $header);
