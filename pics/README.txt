@@ -1,0 +1,1 @@
+This directory is where game-related profile images will be stored.

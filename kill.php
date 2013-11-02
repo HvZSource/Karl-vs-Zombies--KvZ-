@@ -42,6 +42,10 @@ if($game_over == 1) {
 
 require_once('template_top.php');
 
+$current_hour_12hr = date('g');
+$current_hour = date('H');
+$current_minute = date('i');
+
 if($_POST['submit'] == 'Report Tag') {
 $victim = strtoupper(preg_replace("/[^A-Za-z0-9]/","",$_POST['victim_id']));
 $feed = is_array($_POST['feed']) ? $_POST['feed']: array();
@@ -50,14 +54,14 @@ $hour = preg_replace("/[^0-9]/","",$_POST['hour'] + $_POST['am_pm']);
 $minute = preg_replace("/[^0-9]/","",$_POST['minute']);
 $days_ago = preg_replace("/[^0-1]/","",$_POST['days_ago']);
 $err = 0; 
-$ret = mysql_query("SELECT value FROM $table_v WHERE keyword='oz-revealed';") or die(mysql_error());
+$ret = mysql_query("SELECT value FROM {$table_v} WHERE keyword='oz-revealed';") or die(mysql_error());
 $revealed = mysql_fetch_assoc($ret);
 $revealed = $revealed['value'];
 
 print "<table height=100% width=100%><tr><td align=center valign=center><font color='white'>";
 
 // Get victim info
-$ret = mysql_query("SELECT state, fname, lname FROM $table_u WHERE id='$victim' AND active;") or die(mysql_error());
+$ret = mysql_query("SELECT state, fname, lname FROM {$table_u} WHERE id='{$victim}' AND active;") or die(mysql_error());
 $vrow = mysql_fetch_assoc($ret); 
 $vstate = $vrow['state'];
 if(mysql_num_rows($ret) == 0) {
@@ -67,8 +71,6 @@ if(mysql_num_rows($ret) == 0) {
 	print "<font color='#ffff'>Eating that person won't help you.<br>"; 
 	$err = 1; 
 } else {
-	$current_hour = date('H');
-	$current_minute = date('i');
 	if($days_ago == 0 && (($hour > $current_hour) || ($hour == $current_hour && $minute > $current_minute))) {
 		print "<font color='#ffff'>You can't eat people from the future.<br>";
 		$err = 1;
@@ -77,19 +79,19 @@ if(mysql_num_rows($ret) == 0) {
 for($i = 0; $i < sizeof($feed) && $err == 0; $i++) { if(strlen($feed[$i]) > 0) {
 	if(!$revealed) {
 		$f = $feed[$i];
-                $ret = mysql_query("SELECT state FROM $table_u WHERE id='$f' AND active;") or die(mysql_error());
+                $ret = mysql_query("SELECT state FROM {$table_u} WHERE id='{$f}' AND active;") or die(mysql_error());
                 $temp = mysql_fetch_assoc($ret);
 		$temp = $temp['state'];
                 if($temp == '-2') $feed[$i] = 'OriginalZombie';
         }
 
-	$ret = mysql_query("SELECT state, fname, lname, feed FROM $table_u WHERE id='$feed[$i]' AND active;") or die(mysql_error()); 
+	$ret = mysql_query("SELECT state, fname, lname, feed FROM {$table_u} WHERE id='{$feed[$i]}' AND active;") or die(mysql_error()); 
 	if(mysql_num_rows($ret) == 0) { $err = 1; break; }
 
 	$row = mysql_fetch_row($ret); 
 
 	$f_state = $row[0]; 
-	$feed_name = "$row[1] $row[2]";
+	$feed_name = "{$row[1]} {$row[2]}";
 
 //	$day = date('d');
 //	if($today == 0) $day--;
@@ -97,33 +99,34 @@ for($i = 0; $i < sizeof($feed) && $err == 0; $i++) { if(strlen($feed[$i]) > 0) {
 //	$last_hour = substr($row[3], 11, 2);
 //	$last_minute = substr($row[3], 14, 2);
 
-	if($f_state == 0) {		print "<font color='#ffff'>$feed_name is dead."; $err = 1; break; }
-	else if($f_state > 0) {		print "<font color='#ffff'>$feed_name is not (yet?) a zombie."; $err = 1; break; }
+	if($f_state == 0) {		print "<font color='#ffff'>{$feed_name} is dead."; $err = 1; break; }
+	else if($f_state > 0) {		print "<font color='#ffff'>{$feed_name} is not (yet?) a zombie."; $err = 1; break; }
 //	else if(($day == $last_day && (($hour < $last_hour) || ($hour == $last_hour && $minute < $last_minute))) || $day < $last_day) {
 //					print "$feed_name has fed more recently than this kill."; $err = 1; break;
 //	}
 }}
 if($err == 0) {
 
-
-
 $of = $feed[0];
 $kill_time = date('Y-m-d', strtotime('-' . $days_ago . ' days')) . " $hour:$minute:00";
 // increment kills for tagging zombie
-mysql_query("UPDATE $table_u SET kills = kills + 1 WHERE id='$of';") or die(mysql_error());
+mysql_query("UPDATE {$table_u} SET kills = kills + 1 WHERE id='{$of}';") or die(mysql_error());
 // update values for tagged user
-mysql_query("UPDATE $table_u SET state = -1, feed = TIMESTAMP '$kill_time' + INTERVAL 1 hour, killed_by = '$of',
-	killed = TIMESTAMP '$kill_time' WHERE id='$victim';") or die(mysql_error());
+mysql_query("UPDATE {$table_u} SET state = -1, feed = TIMESTAMP '{$kill_time}' + INTERVAL 1 hour, killed_by = '{$of}',
+	killed = TIMESTAMP '{$kill_time}' WHERE id='{$victim}';") or die(mysql_error());
 
 for($i = 0; $i < sizeof($feed); $i++) { if(strlen($feed[$i]) > 0) {
 	$f = $feed[$i];
 	if(is_resource($ret)) { mysql_free_result($ret); }
-	mysql_query("UPDATE $table_u SET feed = TIMESTAMP '$kill_time' WHERE id = '$f' and timediff(feed + INTERVAL $starve_time hour,now()) >= 0 AND active;") or die(mysql_error());
+	$query = "UPDATE {$table_u} SET feed = TIMESTAMP '{$kill_time}' 
+        WHERE id = '{$f}' and timediff(feed + INTERVAL {$starve_time} hour,now()) >= 0 
+        AND timediff({$starve_time}, feed) >= 0 AND active AND state<0;";
+	mysql_query($query) or die(mysql_error());
 }}
 
 	//TWITTER API
 	// Get zombie name and state
-	$ret = mysql_query("SELECT fname, lname, state FROM $table_u WHERE id='$of';") or die(mysql_error());
+	$ret = mysql_query("SELECT fname, lname, state FROM {$table_u} WHERE id='{$of}';") or die(mysql_error());
 	$zom_row = mysql_fetch_array($ret);
 	// The message you want to send
 	// OZ is not revealed, OZ makes kill
@@ -140,7 +143,7 @@ for($i = 0; $i < sizeof($feed); $i++) { if(strlen($feed[$i]) > 0) {
 
 	//email active players
 	$header = "From: no-reply@HvZSource.com \r\n";
-	$ret = mysql_query("SELECT fname, lname, email FROM $table_u WHERE active AND state !=-3;") or die(mysql_error());
+	$ret = mysql_query("SELECT fname, lname, email FROM {$table_u} WHERE active AND state !=-3;") or die(mysql_error());
 	$message .= "\n\n--HvZSource";
 	while($row = mysql_fetch_row($ret)) {
 		//echo $row[2] . ": <br><br>\n\n";
@@ -191,7 +194,8 @@ function chkcontrol(j) {
 <select name="hour">
 <?php
 for($i = 1; $i <= 11; $i++) {
-	print "<option value='$i'>$i</option>";
+	$selected = $i == $current_hour_12hr ? " selected": "";
+    print "<option value='{$i}'{$selected}>{$i}</option>";
 }
 print "<option value='0'>12</option>";
 ?>
@@ -199,14 +203,16 @@ print "<option value='0'>12</option>";
 <select name="minute">
 <?php
 for($i = 0; $i < 60; $i++) {
+	$selected = $i == $current_minute ? " selected": "";
 	$z = $i<10 ? '0' : '';
-	print "<option value='$i'>$z$i</option>";
+	print "<option value='{$i}'{$selected}>{$z}{$i}</option>";
 }
+$pm_selected = $current_hour > 11 ? " selected": "";
 ?>
 </select>
 <select name="am_pm">
 	<option value='0'>AM</option>
-	<option value='12'>PM</option>
+	<option value='12'<?= $pm_selected; ?>>PM</option>
 </select>
 </td>
 </tr>
@@ -221,13 +227,13 @@ for($i = 0; $i < 60; $i++) {
 <td align="left">
 <?php
 $pid = $_SESSION['id']; 
-if($reveal_oz) $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL $starve_time hour, now()) FROM $table_u WHERE state < 0 AND id != '$pid' AND active ORDER BY feed ASC limit $show;") or die(mysql_error()); 
-else $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL $starve_time hour, now()) FROM $table_u WHERE state < 0 AND state != -2 AND id != '$pid' AND active ORDER BY feed ASC limit $show;") or die(mysql_error());
+if($reveal_oz) $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL {$starve_time} hour, now()) FROM {$table_u} WHERE state < 0 AND id != '{$pid}' AND active ORDER BY feed ASC limit {$show};") or die(mysql_error()); 
+else $ret = mysql_query("SELECT id, fname, lname, timediff(feed + INTERVAL {$starve_time} hour, now()) FROM {$table_u} WHERE state < 0 AND state != -2 AND id != '{$pid}' AND active ORDER BY feed ASC limit {$show};") or die(mysql_error());
 for($i = 0; $i < mysql_num_rows($ret); $i++) {
 	$row = mysql_fetch_row($ret); 
 	$till_starve = $row[3];
 	$checked = $i < $feed_limit ? 'checked ' : '';
-	print "\n\t<input name='feed[]' id='feed_$row[0]' type='checkbox' value='$row[0]' onClick='javascript:chkcontrol($i)' $checked>$row[1] $row[2] ($till_starve)<br>"; 
+	print "\n\t<input name='feed[]' id='feed_{$row[0]}' type='checkbox' value='{$row[0]}' onClick='javascript:chkcontrol({$i})' {$checked}>{$row[1]} {$row[2]} ({$till_starve})<br>"; 
 }
 if($i == 0) { echo "No Zombies Left!"; }
 ?>&nbsp;

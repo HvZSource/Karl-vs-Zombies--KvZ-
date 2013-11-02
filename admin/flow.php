@@ -222,7 +222,6 @@ Let's put this game in the ground and raise everyone from the dead so we can sta
 <td colspan=2>
 ---- WISH LIST ----<br>
 BUGS:<br>
--If tags are reported out of order, keep most recent date for feed time<br>
 -Fix bug with underscore in email address<br>
 PLAYERS HOME:<br>
 -Stats on home page (top taggers, player counts)<br>
@@ -230,11 +229,13 @@ PLAYERS LIST:<br>
 -Add color coding (admin controllable?) to each group, mostly on Player List page<br>
 -Add lifetime kills/stats to players list?<br>
 PLAYER ACCOUNT:<br>
+-Add Starvation/Survival counter (javascript?)<br>
 -Show if player isn't registered for current game on account page<br>
+-Stats: Total kills, Average Kills/Game, Survivor place, Time alive<br>
 PLAYER TAG REPORT:<br>
+-Replace id with user_id in html<br>
 -Distributed Sharing option (ex: tagger chooses to split 48 hours: either keep 48 for yourself or share 2@24, 3@16, 4@12, etc.)<br>
 -Send notice to tagged player (and fed zombies?) with incubation time/new starve time<br>
--Default form fields to current time<br>
 ADMIN PLAYER EDITOR:<br>
 -Add OZ pool setting and Killed/Tagged By dropdown to admin player editor<br>
 ADMIN MAILING LIST:<br>
@@ -242,6 +243,7 @@ ADMIN MAILING LIST:<br>
 ADMIN GAME SETTINGS:<br>
 -Add incubation time to game settings<br>
 -Add stun time to game settings<br>
+-Add support for Missions(?)<br>
 -Control Allowable picture extensions through game settings<br>
 -Add game start day/time (use in OZ emails, tag qualifications, etc.)<br>
 -Control ID length through game settings rather than config file<br>
@@ -249,7 +251,7 @@ ADMIN GAME SETTINGS:<br>
 -Support multiple OZ's at beginning of game (maybe select one-at-a-time selection)<br>
 -Add G-rated (stun, tag, blaster, dart) or R-rated (shoot, kill, gun, bullet) option to game settings with disclaimer<br>
 OTHER FEATURES:<br>
-*-Make game, users, admins and maybe settings object oriented using classes (OOP)<br>
+*-Make game, users, admins and maybe settings object oriented using classes (<a href="http://www.youtube.com/watch?v=R_HSmNiKkII&list=PL75B9D91CD69ED950">OOP</a>)<br>
 -Admin controllable messages: OZ reason, zombie report, new missions<br>
 -Take advantage of partially implemented "Factions"<br>
 -Create admin controlled overlay image for factions (small? transparent? side banner?)<br>
